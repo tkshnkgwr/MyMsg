@@ -10,7 +10,7 @@ This document provides a practical user guide, cookbook recipes, and shell integ
 ```powershell
 MyMsg "Build completed successfully!"
 ```
-A native popup window appears front and center on your primary display.
+A native popup window appears centered on the active display where your mouse cursor resides. In multi-monitor setups, it reliably targets your current working monitor.
 
 ### 1.2 Dismissing the Popup
 Dismiss the window instantly through any of the following actions:
@@ -48,9 +48,31 @@ MyMsg "Batch job finished" -c "#00FFCC" --bg-color "#111827"
 MyMsg "Artifact path: /var/log/build.log" -f mono
 ```
 
+### Status Icons for Warnings and Errors
+```powershell
+# Warning icon
+MyMsg "Disk usage exceeded 90% threshold!" -i warn
+
+# Error icon with blink
+MyMsg "Database migration failed!" -i error -b
+
+# Success / OK icon
+MyMsg "All deployment stages completed!" -i ok
+```
+
+### Multi-Line Text with Escape Characters
+```powershell
+MyMsg "Summary:\n- Success: 120\n- Skipped: 3\n- Failed: 0" -i ok
+```
+
+### Light Mode Theme
+```powershell
+MyMsg "Team sync meeting starting in 5 minutes" -t light -i info
+```
+
 ### 10-Minute Timed Reminder (600s)
 ```powershell
-MyMsg "10 minutes elapsed. Time to stretch!" -d 600 -c gold
+MyMsg "10 minutes elapsed. Time to stretch!" -d 600 -c gold -i info
 ```
 
 ---

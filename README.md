@@ -25,7 +25,11 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
 ## ✨ Features
 
 - 🪟 **Always on Top**: Window stays pinned above all other windows and full-screen applications.
+- 🖥️ **Multi-Monitor Cursor Auto-Follow**: Automatically opens centered on the active display where the mouse cursor resides.
 - ⚡ **Instant Dismissal**: Dismiss immediately by pressing `Esc` or `Enter` (Process Exit Code 0), or clicking the close button.
+- 📑 **Multi-Line & Auto Word Wrap**: Automatically wraps long messages and newline characters (`\n`) with full line centering.
+- 💡 **Status Icons (`--icon` / `-i`)**: Display status symbols for `info` (ℹ), `warn` (⚠), `error` (✖), and `ok` (✔).
+- 🌗 **Theme Presets (`--theme` / `-t`)**: `system` (automatic OS light/dark detection - default), `dark`, and `light` modes.
 - 🎨 **Flexible & Tolerant Color Parser**:
   - Web standard color names (`red`, `green`, `blue`, `gold`, `crimson`, `navy`, etc. across 24+ colors)
   - Japanese color names (`赤`, `青`, `緑`, `黄`, `白`, `黒`)
@@ -66,10 +70,12 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--message <STR>` | `-m` | None | Message string to display (Optional argument) |
 | `--size <SIZE>` | `-s` | `medium` | Window size preset (`small`: 300x150, `medium`: 450x220, `large`: 650x350) |
 | `--font-size <PT>` | - | Auto | Font size in points (overrides size preset font size) |
-| `--color <COLOR>` | `-c` | `white` | Text color (named, 1-char shorthand, typo-tolerant, #HEX) |
-| `--bg-color <COLOR>` | - | `#1a1b26` | Window background color (Dark navy theme by default) |
+| `--color <COLOR>` | `-c` | Default theme color | Text color (named, 1-char shorthand, typo-tolerant, #HEX) |
+| `--bg-color <COLOR>` | - | Default theme color | Window background color |
 | `--blink` | `-b` | `false` | Enable text blink pulsing animation |
 | `--font <FONT>` | `-f` | `default` | Font family type (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`) |
+| `--icon <ICON>` | `-i` | None | Icon symbol type (`info`, `warn`, `error`, `ok`) |
+| `--theme <THEME>` | `-t` | `system` | Theme selection (`system`, `dark`, `light`) |
 | `--delay <SEC>` | `-d` | `0` | Delay duration in seconds before showing popup (0 to 3600s) |
 | `--help` | `-h` | - | Display help message and exit |
 | `--version` | `-V` | - | Display version information and exit |
@@ -81,19 +87,28 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 
 ## 💡 Usage Examples
 
-### Basic Notifications
+### Basic Notifications & Icons
 ```powershell
-# Simple message notification
-MyMsg "Build completed successfully!"
+# Notification with OK icon
+MyMsg "Build completed successfully!" -i ok
 
-# Using option flag
-MyMsg -m "Task finished"
+# Warning alert with blinking
+MyMsg "Memory usage nearing limit" -i warn -b
+```
+
+### Themes & Multi-line Text
+```powershell
+# Multi-line message with newline expansion
+MyMsg "Deployment Summary:\n- Passed: 25\n- Skipped: 1\n- Failed: 0" -i info
+
+# Light mode notification
+MyMsg "Team standup starting now" -t light -i info
 ```
 
 ### Color & Styling Customization
 ```powershell
 # Urgent alert in large red text
-MyMsg "Critical error encountered" -c red -s large
+MyMsg "Critical error encountered" -c red -s large -i error
 
 # Shorthand color and custom background
 MyMsg "Server online" -c g --bg-color "#0f172a"
@@ -102,19 +117,16 @@ MyMsg "Server online" -c g --bg-color "#0f172a"
 MyMsg "Operation done" -c "#00E5FF" --font-size 32
 ```
 
-### Urgent Alert & Timed Reminders
+### Timed Reminders
 ```powershell
-# Blinking warning message
-MyMsg "Disk space critically low" -c yellow -b
-
 # Reminder in 5 minutes (300 seconds; 0% CPU during wait)
-MyMsg "Time for the meeting" -d 300 -c gold
+MyMsg "Time for the meeting" -d 300 -c gold -i info
 ```
 
 ### Shell & Script Integration
 ```powershell
 # Notify on build script completion
-npm run build; MyMsg "npm build complete!" -c cyan
+npm run build; MyMsg "npm build complete!" -c cyan -i ok
 ```
 
 ---

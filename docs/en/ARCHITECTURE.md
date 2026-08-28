@@ -13,14 +13,15 @@ graph TD
     CLI[CLI Execution] --> ArgParser[clap::Parser / CliArgs]
     ArgParser --> DelayCheck{delay > 0 ?}
     DelayCheck -- Yes --> Sleep[std::thread::sleep Wait]
-    Sleep --> WinInit[eframe::run_native]
-    DelayCheck -- No --> WinInit
+    Sleep --> MonDetect[get_active_monitor_center_position: Active Monitor Centering]
+    DelayCheck -- No --> MonDetect
+    MonDetect --> WinInit[eframe::run_native: with_position & centered: false]
     WinInit --> FontSetup[setup_japanese_fonts: CJK Font Setup]
     FontSetup --> AppState[MyMsgApp::new Initialization]
     AppState --> EventLoop[eframe::App::update Event Loop]
     EventLoop --> KeyCheck{Esc / Enter Pressed?}
     KeyCheck -- Yes --> CloseCmd[ViewportCommand::Close]
-    KeyCheck -- No --> Render[egui::CentralPanel Render]
+    KeyCheck -- No --> Render[egui::CentralPanel & ScrollArea Render]
 ```
 
 ---
@@ -36,11 +37,13 @@ pub struct CliArgs {
     pub message_opt: Option<String>,
     pub size: String,
     pub font_size: Option<f32>,
-    pub color: String,
+    pub color: Option<String>,
     pub bg_color: Option<String>,
     pub blink: bool,
     pub font: String,
     pub delay: u64,
+    pub icon: Option<String>,
+    pub theme: Option<String>,
 }
 ```
 
@@ -55,6 +58,8 @@ pub struct MyMsgApp {
     pub font_id: FontId,          // Font size & family
     pub blink: bool,              // Blink animation flag
     pub start_time: Instant,      // Start time for phase calculation
+    pub icon: Option<IconType>,   // Notification icon enum
+    pub theme: ThemeMode,         // Theme mode enum
 }
 ```
 

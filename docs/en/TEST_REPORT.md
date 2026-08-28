@@ -19,17 +19,21 @@ This document contains the execution report and verification evidence for the `M
 ## 2. Automated Unit Test Results
 
 ```
-running 5 tests
+running 9 tests
 test tests::test_calculate_window_dimensions ... ok
 test tests::test_clamp_delay_seconds ... ok
 test tests::test_resolve_message_priority ... ok
 test tests::test_parse_color_named_and_typo ... ok
+test tests::test_parse_icon ... ok
+test tests::test_parse_theme ... ok
+test tests::test_resolve_message_newlines ... ok
+test tests::test_resolve_theme_palette ... ok
 test tests::test_parse_color_hex ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 ```
 
-**Summary**: 5 of 5 tests passed (100% Pass Rate).
+**Summary**: 9 of 9 tests passed (100% Pass Rate).
 
 ---
 
@@ -44,8 +48,12 @@ test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 | **Blink Animation** | `MyMsg.exe "Alert" -b` | Pulses opacity on precise 0.5s intervals | PASS |
 | **Delay Timer** | `MyMsg.exe "Delayed" -d 3` | Sleeps 3 seconds before opening window | PASS |
 | **Color Parsing** | `MyMsg.exe "Blue" -c bule` | Typo corrected, displayed in blue | PASS |
+| **Status Icons** | `MyMsg.exe "Warning" -i warn` | Displays yellow ⚠ warning symbol before text | PASS |
+| **Theme Selection** | `MyMsg.exe "Light" -t light` | Renders in light background and navy text | PASS |
+| **Multi-line Wrapping & Centering** | `MyMsg.exe "Line 1\nLine 2"` | Perfectly centered both horizontally and vertically | PASS |
+| **Multi-Monitor Follow** | Sub-monitor `MyMsg.exe "Alert"` | Opens centered on the active display containing the cursor | PASS |
 
 ---
 
 ## 4. Conclusion
-All automated unit tests and manual sanity checks passed with zero defects, verifying v0.1.0 readiness for production distribution.
+All automated unit tests (9 of 9) and manual sanity checks passed with zero defects, verifying v0.1.0 readiness for production distribution.

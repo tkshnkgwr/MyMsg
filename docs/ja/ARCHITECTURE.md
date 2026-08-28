@@ -13,14 +13,15 @@ graph TD
     CLI[CLIコマンド実行] --> ArgParser[clap::Parser / CliArgs]
     ArgParser --> DelayCheck{delay > 0 ?}
     DelayCheck -- Yes --> Sleep[std::thread::sleep 待機]
-    Sleep --> WinInit[eframe::run_native]
-    DelayCheck -- No --> WinInit
+    Sleep --> MonDetect[get_active_monitor_center_position: カーソル位置の作業領域中央を計算]
+    DelayCheck -- No --> MonDetect
+    MonDetect --> WinInit[eframe::run_native: with_position & centered: false]
     WinInit --> FontSetup[setup_japanese_fonts: CJKフォント登録]
     FontSetup --> AppState[MyMsgApp::new 状態生成]
     AppState --> EventLoop[eframe::App::update イベントループ]
     EventLoop --> KeyCheck{Esc / Enter押下?}
     KeyCheck -- Yes --> CloseCmd[ViewportCommand::Close]
-    KeyCheck -- No --> Render[egui::CentralPanel 描画]
+    KeyCheck -- No --> Render[egui::CentralPanel & ScrollArea 中央描画]
 ```
 
 ---
@@ -36,11 +37,13 @@ pub struct CliArgs {
     pub message_opt: Option<String>,
     pub size: String,
     pub font_size: Option<f32>,
-    pub color: String,
+    pub color: Option<String>,
     pub bg_color: Option<String>,
     pub blink: bool,
     pub font: String,
     pub delay: u64,
+    pub icon: Option<String>,
+    pub theme: Option<String>,
 }
 ```
 
@@ -55,6 +58,8 @@ pub struct MyMsgApp {
     pub font_id: FontId,          // フォントサイズとファミリ
     pub blink: bool,              // 点滅フラグ
     pub start_time: Instant,      // 起動時刻（点滅位相計算用）
+    pub icon: Option<IconType>,   // 通知アイコン種別
+    pub theme: ThemeMode,         // テーマ設定
 }
 ```
 

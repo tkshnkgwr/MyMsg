@@ -7,3 +7,10 @@ edition = "2024"
 clap = { version = "4.5", features = ["derive"] }
 eframe = "0.29"
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.52", features = [
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Graphics_Gdi",
+    "Win32_Foundation",
+] }
+

@@ -42,7 +42,7 @@ upx --best --lzma target/release/MyMsg.exe
 - [ ] No warnings from `cargo fmt --check` or `cargo clippy`.
 - [ ] Console help works cleanly on `MyMsg.exe --help`.
 - [ ] CJK / Japanese fonts render cleanly without mojibake.
-- [ ] `CHANGELOG.md` reflects all recent changes under the target version.
+- [ ] `docs/en/CHANGELOG.md` and `docs/ja/CHANGELOG.md` reflect all recent changes under the target version.
 - [ ] `Cargo.toml` version matches release tag.
 
 ---

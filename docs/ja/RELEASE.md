@@ -43,7 +43,7 @@ upx --best --lzma target/release/MyMsg.exe
 - [ ] `cargo fmt --check` および `cargo clippy` に警告がないこと。
 - [ ] `MyMsg.exe --help` でコンソール出力が正常に動作すること。
 - [ ] 日本語文字（漢字・ひらがな）が文字化けせず綺麗に描画されること。
-- [ ] `CHANGELOG.md` に今回のバージョンの変更履歴が記載されていること。
+- [ ] `docs/ja/CHANGELOG.md` および `docs/en/CHANGELOG.md` に今回のバージョンの変更履歴が記載されていること。
 - [ ] `Cargo.toml` の `version` が更新されていること。
 
 ---

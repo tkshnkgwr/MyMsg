@@ -1,3 +1,5 @@
+// UPDATE 2026-08-28: [GUIレイアウト高度化（複数行折返し最適化・アイコン）およびテーマオプションの追加]
+// Why: 長文/改行メッセージの美しく安全な自動折返し表示、通知種別アイコン(info/warn/error/ok)、Dark/Light/System連動テーマを実現するため
 // UPDATE 2026-08-28: [RustDocおよび単体テストコード (#[cfg(test)]) の追加]
 // Why: Rust版としての保守性・仕様明確化を高め、カラーパース、タイマークランプ、サイズ計算などのロジック品質を保証するため
 // UPDATE 2026-08-28: [シミュレーターおよびGUIのタイトルバー・マージン狭小化]
@@ -18,6 +20,9 @@
 //! - **Always on Top**: 画面最前面に固定され、全画面アプリや作業中でも確実に通知。
 //! - **低CPU負荷**: イベント駆動描画（静止時はCPU 0%）とRustネイティブバイナリによる軽快動作。
 //! - **キーボード即時終了**: `Esc` または `Enter` キーを押すだけで瞬時に終了。
+//! - **複数行・自動折返し**: 長文や改行コード（`\n`）を含むテキストを最適に折り返し描画。
+//! - **アイコン表示**: `--icon <info|warn|error|ok>` で通知シンボルを左側に表示。
+//! - **テーマ切り替え**: `--theme <system|dark|light>` でシステム自動追従またはダーク/ライト固定。
 //! - **柔軟なカラー指定**: `Red`, `bule`(typo補正), `g`, `#00E5FF` など直感的なカラー名や略称に対応。
 //! - **タイマー/遅延通知**: `--delay <秒>` で指定秒数待機後に最前面表示（待機中はGUI非生成で負荷ゼロ）。
 
@@ -47,19 +52,31 @@ pub struct CliArgs {
     pub message_opt: Option<String>,
 
     /// ウィンドウサイズ (small: 300x150, medium: 450x220, large: 650x350)
-    #[arg(short = 's', long = "size", default_value = "medium", help = "ウィンドウサイズ [small, medium, large]")]
+    #[arg(
+        short = 's',
+        long = "size",
+        default_value = "medium",
+        help = "ウィンドウサイズ [small, medium, large]"
+    )]
     pub size: String,
 
     /// フォントサイズ (pt単位、省略時はウィンドウサイズから自動算出)
     #[arg(long = "font-size", help = "文字サイズ（pt）")]
     pub font_size: Option<f32>,
 
-    /// メッセージ文字色 (名前・1文字略称・#HEX)
-    #[arg(short = 'c', long = "color", default_value = "white", help = "文字色 (例: Red, blue, bule, g, #00FFCC)")]
-    pub color: String,
+    /// メッセージ文字色 (名前・1文字略称・#HEX、省略時はテーマ標準色)
+    #[arg(
+        short = 'c',
+        long = "color",
+        help = "文字色 (例: Red, blue, bule, g, #00FFCC)"
+    )]
+    pub color: Option<String>,
 
-    /// ウィンドウ背景色 (省略時は標準ダーク #1a1b26)
-    #[arg(long = "bg-color", help = "ウィンドウ背景色 (例: #111111, black, #002244)")]
+    /// ウィンドウ背景色 (省略時はテーマ標準色)
+    #[arg(
+        long = "bg-color",
+        help = "ウィンドウ背景色 (例: #111111, black, #002244)"
+    )]
     pub bg_color: Option<String>,
 
     /// 文字の点滅表示を有効化（約0.5秒周期で明滅）
@@ -67,24 +84,190 @@ pub struct CliArgs {
     pub blink: bool,
 
     /// フォント種別 (1/default/sans, 2/mono, 3/serif, 4/impact)
-    #[arg(short = 'f', long = "font", default_value = "default", help = "フォントタイプ (default, sans, mono, serif, impact)")]
+    #[arg(
+        short = 'f',
+        long = "font",
+        default_value = "default",
+        help = "フォントタイプ (default, sans, mono, serif, impact)"
+    )]
     pub font: String,
 
+    /// アイコン表示種別 (info, warn, error, ok)
+    #[arg(
+        short = 'i',
+        long = "icon",
+        help = "アイコン表示 [info, warn, error, ok]"
+    )]
+    pub icon: Option<String>,
+
+    /// テーマ設定 (system, dark, light)
+    #[arg(
+        short = 't',
+        long = "theme",
+        default_value = "system",
+        help = "テーマ設定 [system, dark, light]"
+    )]
+    pub theme: String,
+
     /// 表示までの遅延時間（秒単位、0〜3600秒/最大1時間）
-    #[arg(short = 'd', long = "delay", default_value_t = 0, help = "指定秒数後にポップアップを表示（最大3600秒）")]
+    #[arg(
+        short = 'd',
+        long = "delay",
+        default_value_t = 0,
+        help = "指定秒数後にポップアップを表示（最大3600秒）"
+    )]
     pub delay: u64,
+}
+
+/// アイコンの種類
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IconType {
+    /// 情報アイコン (ℹ)
+    Info,
+    /// 警告アイコン (⚠)
+    Warn,
+    /// エラー・危険アイコン (✖)
+    Error,
+    /// 成功・完了アイコン (✔)
+    Ok,
+}
+
+impl IconType {
+    /// アイコンのテキストシンボル
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            IconType::Info => "ℹ",
+            IconType::Warn => "⚠",
+            IconType::Error => "✖",
+            IconType::Ok => "✔",
+        }
+    }
+
+    /// アイコン固有のデフォルト強調カラー
+    pub fn default_color(&self) -> Color32 {
+        match self {
+            IconType::Info => Color32::from_rgb(56, 189, 248), // スカイブルー（情報）
+            IconType::Warn => Color32::from_rgb(251, 191, 36), // アンバー/イエロー（警告）
+            IconType::Error => Color32::from_rgb(248, 113, 113), // レッド（エラー）
+            IconType::Ok => Color32::from_rgb(74, 222, 128),   // グリーン（成功）
+        }
+    }
+}
+
+/// アイコン文字列を IconType にパースします。
+pub fn parse_icon(input: &str) -> Option<IconType> {
+    let clean = input.trim().to_lowercase();
+    match clean.as_str() {
+        "info" | "i" | "information" => Some(IconType::Info),
+        "warn" | "warning" | "w" | "alert" => Some(IconType::Warn),
+        "error" | "err" | "e" | "danger" | "ng" => Some(IconType::Error),
+        "ok" | "success" | "check" | "s" | "k" => Some(IconType::Ok),
+        _ => None,
+    }
+}
+
+/// テーマモード種別
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThemeMode {
+    /// システム設定に追従 (既定)
+    System,
+    /// ダークモード固定
+    Dark,
+    /// ライトモード固定
+    Light,
+}
+
+/// テーマ文字列を ThemeMode にパースします。
+pub fn parse_theme(input: &str) -> ThemeMode {
+    match input.trim().to_lowercase().as_str() {
+        "dark" | "d" | "black" => ThemeMode::Dark,
+        "light" | "l" | "white" => ThemeMode::Light,
+        _ => ThemeMode::System,
+    }
+}
+
+/// UIカラーパレット
+#[derive(Debug, Clone, PartialEq)]
+pub struct ThemePalette {
+    pub bg_color: Color32,
+    pub text_color: Color32,
+    pub button_bg: Color32,
+    pub button_text: Color32,
+    pub button_stroke: Color32,
+}
+
+impl ThemePalette {
+    /// ダークテーマパレット
+    pub fn dark() -> Self {
+        Self {
+            bg_color: Color32::from_rgb(26, 27, 38),
+            text_color: Color32::from_rgb(240, 240, 240),
+            button_bg: Color32::from_rgb(45, 48, 65),
+            button_text: Color32::from_rgb(200, 200, 200),
+            button_stroke: Color32::from_rgb(80, 85, 110),
+        }
+    }
+
+    /// ライトテーマパレット
+    pub fn light() -> Self {
+        Self {
+            bg_color: Color32::from_rgb(248, 250, 252),
+            text_color: Color32::from_rgb(15, 23, 42),
+            button_bg: Color32::from_rgb(226, 232, 240),
+            button_text: Color32::from_rgb(51, 65, 85),
+            button_stroke: Color32::from_rgb(203, 213, 225),
+        }
+    }
+}
+
+/// テーマモードとシステム状態、ユーザー指定色から最終パレットを解決します。
+pub fn resolve_theme_palette(
+    theme_mode: ThemeMode,
+    is_dark_system: bool,
+    custom_text_color: Option<&str>,
+    custom_bg_color: Option<&str>,
+) -> ThemePalette {
+    let is_dark = match theme_mode {
+        ThemeMode::Dark => true,
+        ThemeMode::Light => false,
+        ThemeMode::System => is_dark_system,
+    };
+
+    let mut palette = if is_dark {
+        ThemePalette::dark()
+    } else {
+        ThemePalette::light()
+    };
+
+    // ユーザー指定文字色のオーバーライド
+    if let Some(c) = custom_text_color.and_then(parse_color) {
+        palette.text_color = c;
+    }
+
+    // ユーザー指定背景色のオーバーライド
+    if let Some(bg) = custom_bg_color.and_then(parse_color) {
+        palette.bg_color = bg;
+    }
+
+    palette
 }
 
 /// MyMsg の GUI アプリケーション状態
 pub struct MyMsgApp {
     /// 描画対象のメッセージ文字列
     pub message: String,
-    /// メッセージの基本文字色
-    pub text_color: Color32,
-    /// ウィンドウ背景色
-    pub bg_color: Color32,
+    /// ユーザー指定文字色（文字列のまま保持し、テーマ解決時に適用）
+    pub custom_text_color: Option<String>,
+    /// ユーザー指定背景色
+    pub custom_bg_color: Option<String>,
+    /// テーマモード設定
+    pub theme_mode: ThemeMode,
+    /// アイコン設定
+    pub icon: Option<IconType>,
     /// egui用フォント識別情報 (サイズ + ファミリ)
     pub font_id: FontId,
+    /// フォントサイズ数値
+    pub font_size: f32,
     /// 点滅エフェクトフラグ
     pub blink: bool,
     /// アプリケーション起動時刻（点滅周期計算用）
@@ -104,39 +287,44 @@ impl MyMsgApp {
         };
         let font_id = FontId::new(font_size, font_family);
 
-        let text_color = parse_color(&args.color).unwrap_or(Color32::from_rgb(240, 240, 240));
-        let bg_color = args
-            .bg_color
-            .as_deref()
-            .and_then(parse_color)
-            .unwrap_or(Color32::from_rgb(26, 27, 38));
+        let icon = args.icon.as_deref().and_then(parse_icon);
+        let theme_mode = parse_theme(&args.theme);
 
         Self {
             message,
-            text_color,
-            bg_color,
+            custom_text_color: args.color,
+            custom_bg_color: args.bg_color,
+            theme_mode,
+            icon,
             font_id,
+            font_size,
             blink: args.blink,
             start_time: Instant::now(),
         }
     }
 }
 
-/// メッセージ文字列の優先度解決を行います。
+/// メッセージ文字列の優先度解決およびエスケープ改行の展開を行います。
 ///
 /// 1. 位置引数 (`message_arg`) があれば最優先
 /// 2. `-m / --message` (`message_opt`) があれば採用
 /// 3. いずれもなければデフォルトの通知テキストを返します。
+/// 4. 文字列内の `\n` や `\r\n` エスケープ文字を実際の改行文字に展開します。
 pub fn resolve_message(arg: Option<String>, opt: Option<String>) -> String {
-    arg.or(opt)
-        .unwrap_or_else(|| "MyMsg: 通知が届きました".to_string())
+    let raw = arg
+        .or(opt)
+        .unwrap_or_else(|| "MyMsg: 通知が届きました".to_string());
+    raw.replace("\\r\\n", "\n").replace("\\n", "\n")
 }
 
 /// サイズ指定文字列およびフォントサイズ指定から、適切な文字サイズとウィンドウ寸法を算出します。
 ///
 /// # 戻り値
 /// `(font_size, (width, height))`
-pub fn calculate_window_dimensions(size_str: &str, custom_font_size: Option<f32>) -> (f32, (f32, f32)) {
+pub fn calculate_window_dimensions(
+    size_str: &str,
+    custom_font_size: Option<f32>,
+) -> (f32, (f32, f32)) {
     let (default_font_size, dims) = match size_str.trim().to_lowercase().as_str() {
         "small" | "s" => (20.0, (300.0, 150.0)),
         "large" | "l" => (36.0, (650.0, 350.0)),
@@ -160,60 +348,103 @@ impl eframe::App for MyMsgApp {
             return;
         }
 
+        // システムテーマの判定 (ダークモード判定)
+        let is_dark_system = match ctx.system_theme() {
+            Some(egui::Theme::Light) => false,
+            _ => true, // ダークまたは未設定時はデフォルトでダークモード
+        };
+
+        // カラーパレットの解決
+        let palette = resolve_theme_palette(
+            self.theme_mode,
+            is_dark_system,
+            self.custom_text_color.as_deref(),
+            self.custom_bg_color.as_deref(),
+        );
+
         // 点滅エフェクト計算 (0.5秒周期)
-        let mut display_color = self.text_color;
+        let mut display_color = palette.text_color;
         if self.blink {
             let elapsed = self.start_time.elapsed().as_secs_f32();
             let phase = (elapsed % 1.0) < 0.5;
             if !phase {
                 display_color = Color32::from_rgba_unmultiplied(
-                    self.text_color.r(),
-                    self.text_color.g(),
-                    self.text_color.b(),
+                    palette.text_color.r(),
+                    palette.text_color.g(),
+                    palette.text_color.b(),
                     30,
                 );
             }
             ctx.request_repaint_after(Duration::from_millis(250));
         }
 
-        // UPDATE 2026-08-28: [狭小スリムマージンの適用]
-        // Why: ウィンドウ全体で無駄な余白を削減し、メッセージ本文を狭い画面でも大きく力強く描画するため
         let frame = egui::Frame::none()
-            .fill(self.bg_color)
+            .fill(palette.bg_color)
             .inner_margin(egui::Margin::symmetric(16.0, 10.0));
 
         egui::CentralPanel::default().frame(frame).show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
+            // 下部アクションバーを最下部に固定配置
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.add_space(4.0);
-
-                // 中央メッセージ表示
-                ui.label(
-                    RichText::new(&self.message)
-                        .font(self.font_id.clone())
-                        .color(display_color)
-                        .strong(),
+                let close_btn = ui.add(
+                    egui::Button::new(
+                        RichText::new("✕ 閉じる (Esc / Enter)")
+                            .size(12.0)
+                            .color(palette.button_text),
+                    )
+                    .fill(palette.button_bg)
+                    .stroke(egui::Stroke::new(1.0, palette.button_stroke))
+                    .rounding(4.0),
                 );
 
-                ui.add_space(8.0);
+                if close_btn.clicked() {
+                    ctx.send_viewport_cmd(ViewportCommand::Close);
+                }
 
-                // 下部アクションバー
-                ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                    ui.add_space(2.0);
-                    let close_btn = ui.add(
-                        egui::Button::new(
-                            RichText::new("✕ 閉じる (Esc / Enter)")
-                                .size(12.0)
-                                .color(Color32::from_rgb(200, 200, 200)),
-                        )
-                        .fill(Color32::from_rgb(45, 48, 65))
-                        .stroke(egui::Stroke::new(1.0, Color32::from_rgb(80, 85, 110)))
-                        .rounding(4.0),
-                    );
+                ui.add_space(6.0);
 
-                    if close_btn.clicked() {
-                        ctx.send_viewport_cmd(ViewportCommand::Close);
-                    }
-                });
+                // メッセージコンテンツ領域（縦スクロール＆自動折り返し＆正確な上下左右中央配置）
+                egui::ScrollArea::vertical()
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| {
+                        ui.with_layout(
+                            egui::Layout::top_down(egui::Align::Center)
+                                .with_cross_align(egui::Align::Center)
+                                .with_main_align(egui::Align::Center),
+                            |ui| {
+                                if let Some(icon) = self.icon {
+                                    ui.horizontal(|ui| {
+                                        ui.with_layout(
+                                            egui::Layout::left_to_right(egui::Align::Center)
+                                                .with_main_align(egui::Align::Center),
+                                            |ui| {
+                                                ui.label(
+                                                    RichText::new(icon.symbol())
+                                                        .size(self.font_size * 1.3)
+                                                        .color(icon.default_color())
+                                                        .strong(),
+                                                );
+                                                ui.add_space(8.0);
+                                                ui.label(
+                                                    RichText::new(&self.message)
+                                                        .font(self.font_id.clone())
+                                                        .color(display_color)
+                                                        .strong(),
+                                                );
+                                            },
+                                        );
+                                    });
+                                } else {
+                                    ui.label(
+                                        RichText::new(&self.message)
+                                            .font(self.font_id.clone())
+                                            .color(display_color)
+                                            .strong(),
+                                    );
+                                }
+                            },
+                        );
+                    });
             });
         });
     }
@@ -249,7 +480,7 @@ pub fn parse_color(input: &str) -> Option<Color32> {
         "pink" | "magenta" | "m" => Some(Color32::from_rgb(236, 72, 153)),
         "white" | "w" | "白" => Some(Color32::from_rgb(255, 255, 255)),
         "black" | "k" | "黒" => Some(Color32::from_rgb(10, 10, 15)),
-        
+
         // 拡張パレット色
         "lime" => Some(Color32::from_rgb(132, 204, 22)),
         "gold" => Some(Color32::from_rgb(250, 204, 21)),
@@ -365,6 +596,67 @@ pub fn setup_japanese_fonts(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
+// UPDATE 2026-08-28: [マルチモニター対応：アクティブディスプレイ物理ピクセル中央座標の算出]
+// Why: eframe/winit の with_position() は仮想デスクトップの物理ピクセル座標をそのまま受け付ける。
+//      centered: true はウィンドウ生成後にプライマリモニター中央へ set_outer_position() を再呼び出しするため
+//      with_position() を上書きしてしまう。centered: false にして自前の座標を使うことで修正する。
+/// 現在のマウスカーソルが存在するモニターの作業領域（タスクバーを除いた領域）の
+/// 物理ピクセル中央座標を返します。winit の with_position() に直接渡せる単位です。
+#[cfg(windows)]
+pub fn get_active_monitor_center_position(
+    window_width: f32,
+    window_height: f32,
+) -> Option<[f32; 2]> {
+    use windows_sys::Win32::Foundation::POINT;
+    use windows_sys::Win32::Graphics::Gdi::{
+        GetMonitorInfoW, MONITOR_DEFAULTTONEAREST, MONITORINFO, MonitorFromPoint,
+    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::GetCursorPos;
+
+    unsafe {
+        let mut cursor_pos = POINT { x: 0, y: 0 };
+        if GetCursorPos(&mut cursor_pos) == 0 {
+            return None;
+        }
+
+        let h_monitor = MonitorFromPoint(cursor_pos, MONITOR_DEFAULTTONEAREST);
+        if h_monitor == 0 {
+            return None;
+        }
+
+        let mut monitor_info = MONITORINFO {
+            cbSize: std::mem::size_of::<MONITORINFO>() as u32,
+            rcMonitor: std::mem::zeroed(),
+            rcWork: std::mem::zeroed(),
+            dwFlags: 0,
+        };
+        if GetMonitorInfoW(h_monitor, &mut monitor_info) == 0 {
+            return None;
+        }
+
+        // rcWork は仮想デスクトップ上の物理ピクセル座標
+        // winit の with_position([x, y]) もこれと同じ物理ピクセル単位を受け付ける
+        let left = monitor_info.rcWork.left as f32;
+        let top = monitor_info.rcWork.top as f32;
+        let work_w = (monitor_info.rcWork.right - monitor_info.rcWork.left) as f32;
+        let work_h = (monitor_info.rcWork.bottom - monitor_info.rcWork.top) as f32;
+
+        let pos_x = left + (work_w - window_width) / 2.0;
+        let pos_y = top + (work_h - window_height) / 2.0;
+
+        Some([pos_x, pos_y])
+    }
+}
+
+/// 非Windows環境用フォールバック
+#[cfg(not(windows))]
+pub fn get_active_monitor_center_position(
+    _window_width: f32,
+    _window_height: f32,
+) -> Option<[f32; 2]> {
+    None
+}
+
 fn main() -> eframe::Result<()> {
     let args = CliArgs::parse();
 
@@ -377,15 +669,26 @@ fn main() -> eframe::Result<()> {
 
     let (_, (width, height)) = calculate_window_dimensions(&args.size, args.font_size);
 
-    // eframeのネイティブオプション（最前面・中央・リサイズ不可・タイトルバー設定）
+    let mut viewport = ViewportBuilder::default()
+        .with_title("MyMsg")
+        .with_inner_size([width, height])
+        .with_always_on_top()
+        .with_resizable(false)
+        .with_active(true)
+        .with_decorations(true);
+
+    // マルチモニター環境で現在操作中のディスプレイ中央に配置
+    if let Some(pos) = get_active_monitor_center_position(width, height) {
+        viewport = viewport.with_position(pos);
+    }
+
+    // eframeのネイティブオプション
+    // IMPORTANT: centered: false にしないと eframe がウィンドウ生成後に
+    //            プライマリモニター中央へ set_outer_position() を再呼び出しし、
+    //            with_position() で設定したアクティブモニター座標が上書きされる
     let native_options = eframe::NativeOptions {
-        viewport: ViewportBuilder::default()
-            .with_title("MyMsg")
-            .with_inner_size([width, height])
-            .with_always_on_top()
-            .with_resizable(false)
-            .with_active(true)
-            .with_decorations(true),
+        centered: false,
+        viewport,
         ..Default::default()
     };
 
@@ -427,7 +730,7 @@ mod tests {
         assert_eq!(font_s, 20.0);
         assert_eq!((w_s, h_s), (300.0, 150.0));
 
-        // medium (default)
+        // medium (既定値)
         let (font_m, (w_m, h_m)) = calculate_window_dimensions("medium", None);
         assert_eq!(font_m, 26.0);
         assert_eq!((w_m, h_m), (450.0, 220.0));
@@ -473,7 +776,10 @@ mod tests {
     #[test]
     fn test_parse_color_hex() {
         // 6桁 HEX
-        assert_eq!(parse_color("#FFFFFF"), Some(Color32::from_rgb(255, 255, 255)));
+        assert_eq!(
+            parse_color("#FFFFFF"),
+            Some(Color32::from_rgb(255, 255, 255))
+        );
         assert_eq!(parse_color("00E5FF"), Some(Color32::from_rgb(0, 229, 255)));
 
         // 3桁 HEX
@@ -481,9 +787,71 @@ mod tests {
         assert_eq!(parse_color("0F0"), Some(Color32::from_rgb(0, 255, 0)));
 
         // 8桁 HEX (RGBA)
-        assert_eq!(parse_color("#FFFFFF80"), Some(Color32::from_rgba_unmultiplied(255, 255, 255, 128)));
+        assert_eq!(
+            parse_color("#FFFFFF80"),
+            Some(Color32::from_rgba_unmultiplied(255, 255, 255, 128))
+        );
 
         // 不正値
         assert_eq!(parse_color("invalid_color_xyz"), None);
+    }
+
+    #[test]
+    fn test_parse_icon() {
+        assert_eq!(parse_icon("info"), Some(IconType::Info));
+        assert_eq!(parse_icon("i"), Some(IconType::Info));
+        assert_eq!(parse_icon("warn"), Some(IconType::Warn));
+        assert_eq!(parse_icon("warning"), Some(IconType::Warn));
+        assert_eq!(parse_icon("w"), Some(IconType::Warn));
+        assert_eq!(parse_icon("error"), Some(IconType::Error));
+        assert_eq!(parse_icon("err"), Some(IconType::Error));
+        assert_eq!(parse_icon("e"), Some(IconType::Error));
+        assert_eq!(parse_icon("ok"), Some(IconType::Ok));
+        assert_eq!(parse_icon("success"), Some(IconType::Ok));
+        assert_eq!(parse_icon("check"), Some(IconType::Ok));
+        assert_eq!(parse_icon("s"), Some(IconType::Ok));
+        assert_eq!(parse_icon("unknown"), None);
+    }
+
+    #[test]
+    fn test_parse_theme() {
+        assert_eq!(parse_theme("dark"), ThemeMode::Dark);
+        assert_eq!(parse_theme("d"), ThemeMode::Dark);
+        assert_eq!(parse_theme("light"), ThemeMode::Light);
+        assert_eq!(parse_theme("l"), ThemeMode::Light);
+        assert_eq!(parse_theme("system"), ThemeMode::System);
+        assert_eq!(parse_theme("sys"), ThemeMode::System);
+        assert_eq!(parse_theme("auto"), ThemeMode::System);
+    }
+
+    #[test]
+    fn test_resolve_message_newlines() {
+        let msg = resolve_message(Some("1行目\\n2行目\\r\\n3行目".into()), None);
+        assert_eq!(msg, "1行目\n2行目\n3行目");
+    }
+
+    #[test]
+    fn test_resolve_theme_palette() {
+        // ダークテーマの明示的指定
+        let p_dark = resolve_theme_palette(ThemeMode::Dark, false, None, None);
+        assert_eq!(p_dark.bg_color, Color32::from_rgb(26, 27, 38));
+        assert_eq!(p_dark.text_color, Color32::from_rgb(240, 240, 240));
+
+        // ライトテーマの明示的指定
+        let p_light = resolve_theme_palette(ThemeMode::Light, true, None, None);
+        assert_eq!(p_light.bg_color, Color32::from_rgb(248, 250, 252));
+        assert_eq!(p_light.text_color, Color32::from_rgb(15, 23, 42));
+
+        // システムテーマ設定への自動追従
+        let p_sys_dark = resolve_theme_palette(ThemeMode::System, true, None, None);
+        assert_eq!(p_sys_dark.bg_color, Color32::from_rgb(26, 27, 38));
+
+        let p_sys_light = resolve_theme_palette(ThemeMode::System, false, None, None);
+        assert_eq!(p_sys_light.bg_color, Color32::from_rgb(248, 250, 252));
+
+        // ユーザー指定色の最優先オーバーライド
+        let p_custom = resolve_theme_palette(ThemeMode::Dark, true, Some("red"), Some("#000000"));
+        assert_eq!(p_custom.text_color, Color32::from_rgb(239, 68, 68));
+        assert_eq!(p_custom.bg_color, Color32::from_rgb(0, 0, 0));
     }
 }

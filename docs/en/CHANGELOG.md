@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-08-28
 
 ### Added
+- **Multi-Monitor Active Display Auto-Detection**:
+  - Automatically identifies the monitor containing the mouse cursor via Windows native APIs (`GetCursorPos`, `MonitorFromPoint`, `GetMonitorInfoW`) and centers the popup within its usable working area (`rcWork`).
+  - Native integration with `eframe` (`centered: false`) using physical pixel coordinate calculation to prevent override issues.
+- **Multi-Line Text Wrapping & Centering Optimization**:
+  - Automatic line wrapping via `egui::ScrollArea` and label wrapping with full horizontal and vertical line centering.
+  - Expansion of `\n` and `\r\n` literals in CLI arguments to actual multi-line breaks.
+- **Icon Display Option (`-i` / `--icon`)**:
+  - Notification symbols for `info` (ℹ), `warn` (⚠), `error` (✖), and `ok` (✔) with distinctive highlight colors.
+- **Theme Selection (`-t` / `--theme`)**:
+  - `system` (automatic OS light/dark theme tracking - default), `dark`, and `light` presets with cohesive palette resolution.
 - **Core CLI Engine**: Powered by `clap` v4 with derive macros, supporting positional message arguments and optional `-m` / `--message` flags.
 - **Always-on-Top GUI Notification**: Window rendered using `eframe` / `egui` with native `with_always_on_top()` flag, pinned on top of all windows and full-screen applications.
 - **Instant Keyboard & Button Dismissal**: Immediate application exit on pressing `Esc` or `Enter`, or clicking the bottom action bar button (`✕ 閉じる (Esc / Enter)`).

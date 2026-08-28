@@ -25,7 +25,11 @@
 ## ✨ 主な特徴
 
 - 🪟 **最前面固定（Always on Top）**: フルスクリーン作業中や別ウィンドウ操作中でも確実に通知が視界に入ります。
+- 🖥️ **マルチモニター自動追従**: マウスカーソルや操作中のアクティブディスプレイの中央に自動でポップアップ表示。
 - ⚡ **キーボード即時終了**: `Esc` または `Enter` キーを押すだけで瞬時にプロセス終了（終了コード 0）。
+- 📑 **複数行・自動ワードラップ & 完全中央揃え**: 改行（`\n`）や長文テキストを美しく折り返し、行ごとに水平・垂直中央に描画。
+- 💡 **通知アイコン（`--icon` / `-i`）**: `info` (ℹ), `warn` (⚠), `error` (✖), `ok` (✔) のシンボル表示。
+- 🌗 **テーマ設定（`--theme` / `-t`）**: `system`（OS自動追従・既定）、`dark`、`light` のプリセット切替。
 - 🎨 **柔軟・寛容なカラー指定**:
   - Web標準カラー名（`red`, `green`, `blue`, `gold`, `crimson`, `navy` 等 24色以上）
   - 日本語カラー名（`赤`, `青`, `緑`, `黄`, `白`, `黒`）
@@ -66,10 +70,12 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--message <STR>` | `-m` | なし | 表示するメッセージ文字列（オプション引数） |
 | `--size <SIZE>` | `-s` | `medium` | ウィンドウサイズ (`small`: 300x150, `medium`: 450x220, `large`: 650x350) |
 | `--font-size <PT>` | - | 自動算出 | 文字サイズ（pt単位、指定時はサイズプリセットより優先） |
-| `--color <COLOR>` | `-c` | `white` | 文字色（名前、1文字略称、タイポ、#HEX） |
-| `--bg-color <COLOR>` | - | `#1a1b26` | ウィンドウ背景色（ダークネイビー調） |
+| `--color <COLOR>` | `-c` | 省略時テーマ色 | 文字色（名前、1文字略称、タイポ、#HEX） |
+| `--bg-color <COLOR>` | - | 省略時テーマ色 | ウィンドウ背景色 |
 | `--blink` | `-b` | `false` | メッセージ文字の明滅エフェクトを有効化 |
 | `--font <FONT>` | `-f` | `default` | フォント種別 (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`) |
+| `--icon <ICON>` | `-i` | なし | アイコン種別 (`info`, `warn`, `error`, `ok`) |
+| `--theme <THEME>` | `-t` | `system` | テーマ設定 (`system`, `dark`, `light`) |
 | `--delay <SEC>` | `-d` | `0` | 表示までの遅延時間（秒単位、0〜3600秒） |
 | `--help` | `-h` | - | ヘルプメッセージを表示して終了 |
 | `--version` | `-V` | - | バージョン情報を表示して終了 |
@@ -81,19 +87,28 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 
 ## 💡 使用例
 
-### 基本通知
+### 基本通知 & アイコン表示
 ```powershell
-# 単純なメッセージ表示
-MyMsg "ビルドが完了しました！"
+# アイコン付き通知
+MyMsg "すべてのビルドが正常に完了しました！" -i ok
 
-# オプション引数による指定
-MyMsg -m "タスク完了"
+# 警告アイコン + 点滅通知
+MyMsg "メモリ使用率が上限に近づいています" -i warn -b
+```
+
+### テーマ・複数行メッセージ
+```powershell
+# 改行を含めた複数行メッセージ（自動折り返し）
+MyMsg "【処理サマリー】\n成功: 25件\n警告: 1件\n失敗: 0件" -i info
+
+# ライトモードでの表示
+MyMsg "ミーティングの開始時間です" -t light -i info
 ```
 
 ### カラー・デザインのカスタマイズ
 ```powershell
 # 警告カラー（赤文字・大サイズ）
-MyMsg "エラーが発生しました" -c red -s large
+MyMsg "エラーが発生しました" -c red -s large -i error
 
 # 1文字略称と背景色指定
 MyMsg "サーバー正常起動" -c g --bg-color "#0f172a"
@@ -102,19 +117,16 @@ MyMsg "サーバー正常起動" -c g --bg-color "#0f172a"
 MyMsg "処理完了" -c "#00E5FF" --font-size 32
 ```
 
-### 緊急アラート & タイマー通知
+### タイマー通知
 ```powershell
-# 点滅表示（緊急通知）
-MyMsg "⚠ ディスク容量が不足しています" -c yellow -b
-
 # 5分後（300秒後）にリマインド通知（待機中リソース消費0）
-MyMsg "ミーティングの時間です" -d 300 -c gold
+MyMsg "ミーティングの時間です" -d 300 -c gold -i info
 ```
 
 ### PowerShell / バッチファイル連携
 ```powershell
 # 長時間スクリプト終了時に通知
-npm run build; MyMsg "npm build 完了！" -c cyan
+npm run build; MyMsg "npm build 完了！" -c cyan -i ok
 ```
 
 ---
