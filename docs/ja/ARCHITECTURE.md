@@ -26,10 +26,27 @@ graph TD
 
 ---
 
-## 2. モジュール & 構造体構成
+## 2. ソースコードモジュール構成
 
-### 2.1 `CliArgs` (コマンドライン引数構造体)
+ソースコードは責務ごとに以下の6モジュールに分割されています。
+
+```
+src/
+├── main.rs       # エントリーポイント（main関数、遅延処理、Viewport初期化）
+├── cli.rs        # CLI引数定義（CliArgs, IconType, ThemeMode, 引数解決・寸法計算）
+├── color.rs      # カラーパーサー（parse_color, ThemePalette, テーマ解決）
+├── font.rs       # 日本語・システムフォント自動検出・登録（setup_japanese_fonts）
+├── monitor.rs    # マルチモニター・カーソル画面中央座標検出（Windows API）
+└── app.rs        # GUI状態（MyMsgApp）& レンダリングループ（Galley上下中央配置）
+```
+
+---
+
+## 3. 主要構造体定義
+
+### 3.1 `CliArgs` (`src/cli.rs`)
 `clap::Parser` によるマクロ導出で、CLI からの入力文字列を安全に型付けされた構造体に変換します。
+
 
 ```rust
 pub struct CliArgs {

@@ -26,10 +26,27 @@ graph TD
 
 ---
 
-## 2. Module & Struct Architecture
+## 2. Source Code Module Breakdown
 
-### 2.1 `CliArgs` (Command-Line Arguments)
+The codebase is refactored into 6 modular files organized by responsibility:
+
+```
+src/
+├── main.rs       # Application entry point (main, delay sleep, viewport setup)
+├── cli.rs        # CLI argument models (CliArgs, IconType, ThemeMode, dimension resolution)
+├── color.rs      # Color & theme parser (parse_color, ThemePalette, palette resolver)
+├── font.rs       # System font auto-detection & registration (setup_japanese_fonts)
+├── monitor.rs    # Multi-monitor active cursor display positioning (Win32 API)
+└── app.rs        # GUI state model (MyMsgApp) & rendering loop (eframe::App)
+```
+
+---
+
+## 3. Core Structs & Data Types
+
+### 3.1 `CliArgs` (`src/cli.rs`)
 Derived via `clap::Parser` to map command-line flags safely into typed fields:
+
 
 ```rust
 pub struct CliArgs {
