@@ -39,3 +39,12 @@ jobs:
       - name: Run Rust Unit Tests
         run: cargo test --verbose
 
+      - name: Build Release Binary
+        run: cargo build --release --verbose
+
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyMsg-windows-x64
+          path: target/release/MyMsg.exe
+
