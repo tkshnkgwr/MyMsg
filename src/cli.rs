@@ -83,14 +83,43 @@ pub struct CliArgs {
     )]
     pub theme: String,
 
-    /// 表示までの遅延時間（秒単位、0〜3600秒/最大1時間）
+    /// 表示までの遅延時間・時刻指定（秒数: 60, 単位: 10m/1h/10分, 時刻: 12:00、最大24時間）
     #[arg(
         short = 'd',
         long = "delay",
-        default_value_t = 0,
-        help = "指定秒数後にポップアップを表示（最大3600秒）"
+        default_value = "0",
+        help = "指定時間・時刻後にポップアップを表示 [例: 60, 10m, 1h, 10分, 12:00]",
+        long_help = "ポップアップ表示までの待機時間または指定時刻。\n\
+                     ・秒数指定: 60, 300, 3600\n\
+                     ・単位指定: 10s(秒), 10m(分), 1h(時間), 10分, 1時間\n\
+                     ・時刻指定: 12:00, 17:30:00 (過去の時刻は翌日として計算)\n\
+                     ※最大待機時間は24時間 (86400秒) です。"
     )]
-    pub delay: u64,
+    pub delay: String,
+
+    /// 表示先モニターの指定 (cursor, primary, またはモニター番号 0, 1, 2...)
+    #[arg(
+        long = "monitor",
+        default_value = "cursor",
+        help = "表示先モニター [cursor, primary, 0, 1, 2...]"
+    )]
+    pub monitor: String,
+
+    /// 自動消去タイマー（秒単位、0は無効で手動終了まで待機）
+    #[arg(
+        long = "timeout",
+        default_value_t = 0,
+        help = "指定秒数経過後に自動でウィンドウを閉じる（0で無効）"
+    )]
+    pub timeout: u64,
+
+    /// OS標準のトースト通知モード（GUIウィンドウを表示せず通知センター経由で表示）
+    #[arg(
+        short = 'T',
+        long = "toast",
+        help = "OS標準のトースト通知として表示（GUI非生成・即時終了）"
+    )]
+    pub toast: bool,
 }
 
 /// アイコンの種類
@@ -160,6 +189,33 @@ pub fn parse_theme(input: &str) -> ThemeMode {
     }
 }
 
+/// モニター指定種別
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MonitorTarget {
+    /// マウスカーソルが存在するモニター (既定値)
+    Cursor,
+    /// プライマリモニター
+    Primary,
+    /// 指定されたインデックスのモニター (0始まり)
+    Index(usize),
+}
+
+/// モニター指定文字列を MonitorTarget にパースします。
+pub fn parse_monitor_target(input: &str) -> MonitorTarget {
+    let clean = input.trim().to_lowercase();
+    match clean.as_str() {
+        "cursor" | "c" | "mouse" | "active" => MonitorTarget::Cursor,
+        "primary" | "p" | "main" => MonitorTarget::Primary,
+        _ => {
+            if let Ok(idx) = clean.parse::<usize>() {
+                MonitorTarget::Index(idx)
+            } else {
+                MonitorTarget::Cursor
+            }
+        }
+    }
+}
+
 /// メッセージ文字列の優先度解決およびエスケープ改行の展開を行います。
 ///
 /// 1. 位置引数 (`message_arg`) があれば最優先
@@ -191,9 +247,90 @@ pub fn calculate_window_dimensions(
     (final_font_size, dims)
 }
 
-/// 遅延秒数を安全な範囲（0〜3600秒 = 最大1時間）にクランプします。
+use chrono::{Local, NaiveTime, Timelike};
+
+/// 遅延指定文字列（秒数, 単位付き, または HH:MM / HH:MM:SS 時刻）を解析し、待機秒数を返します。
+pub fn parse_delay_to_seconds(input: &str) -> u64 {
+    let now = Local::now().time();
+    parse_delay_with_reference(input, now)
+}
+
+/// 基準時刻（now）を用いて遅延秒数を算出する内部関数（テスト・検証用）
+pub fn parse_delay_with_reference(input: &str, now: NaiveTime) -> u64 {
+    let clean = input.trim().to_lowercase();
+    if clean.is_empty() || clean == "0" {
+        return 0;
+    }
+
+    // 1. 純粋な秒数（数値のみ）
+    if let Ok(secs) = clean.parse::<u64>() {
+        return clamp_delay_seconds(secs);
+    }
+
+    // 2. 単位付き指定 (s, m, h, 秒, 分, 時間)
+    if let Some(num_str) = clean.strip_suffix('s') {
+        if let Ok(num) = num_str.trim().parse::<u64>() {
+            return clamp_delay_seconds(num);
+        }
+    }
+    if let Some(num_str) = clean.strip_suffix('m') {
+        if let Ok(num) = num_str.trim().parse::<u64>() {
+            return clamp_delay_seconds(num * 60);
+        }
+    }
+    if let Some(num_str) = clean.strip_suffix('h') {
+        if let Ok(num) = num_str.trim().parse::<u64>() {
+            return clamp_delay_seconds(num * 3600);
+        }
+    }
+    if let Some(num_str) = clean.strip_suffix("秒") {
+        if let Ok(num) = num_str.trim().parse::<u64>() {
+            return clamp_delay_seconds(num);
+        }
+    }
+    if let Some(num_str) = clean.strip_suffix("分") {
+        if let Ok(num) = num_str.trim().parse::<u64>() {
+            return clamp_delay_seconds(num * 60);
+        }
+    }
+    if let Some(num_str) = clean.strip_suffix("時間") {
+        if let Ok(num) = num_str.trim().parse::<u64>() {
+            return clamp_delay_seconds(num * 3600);
+        }
+    }
+
+    // 3. 時刻指定 (HH:MM または HH:MM:SS)
+    if clean.contains(':') {
+        let parts: Vec<&str> = clean.split(':').collect();
+        if parts.len() == 2 || parts.len() == 3 {
+            if let (Ok(h), Ok(m)) = (parts[0].trim().parse::<u32>(), parts[1].trim().parse::<u32>()) {
+                let s = if parts.len() == 3 {
+                    parts[2].trim().parse::<u32>().unwrap_or(0)
+                } else {
+                    0
+                };
+                if h < 24 && m < 60 && s < 60 {
+                    if let Some(target_time) = NaiveTime::from_hms_opt(h, m, s) {
+                        let now_secs = now.num_seconds_from_midnight() as i64;
+                        let target_secs = target_time.num_seconds_from_midnight() as i64;
+                        let diff = if target_secs >= now_secs {
+                            target_secs - now_secs
+                        } else {
+                            (86400 + target_secs) - now_secs
+                        };
+                        return clamp_delay_seconds(diff as u64);
+                    }
+                }
+            }
+        }
+    }
+
+    0
+}
+
+/// 遅延秒数を安全な範囲（0〜86400秒 = 最大24時間）にクランプします。
 pub fn clamp_delay_seconds(delay: u64) -> u64 {
-    delay.min(3600)
+    delay.min(86400)
 }
 
 #[cfg(test)]
@@ -241,8 +378,34 @@ mod tests {
     fn test_clamp_delay_seconds() {
         assert_eq!(clamp_delay_seconds(0), 0);
         assert_eq!(clamp_delay_seconds(30), 30);
-        assert_eq!(clamp_delay_seconds(3600), 3600);
-        assert_eq!(clamp_delay_seconds(9999), 3600); // 1時間に制限
+        assert_eq!(clamp_delay_seconds(86400), 86400);
+        assert_eq!(clamp_delay_seconds(99999), 86400); // 24時間に制限
+    }
+
+    #[test]
+    fn test_parse_delay_with_reference() {
+        let now = NaiveTime::from_hms_opt(10, 50, 0).unwrap();
+
+        // 1. 秒数指定
+        assert_eq!(parse_delay_with_reference("0", now), 0);
+        assert_eq!(parse_delay_with_reference("60", now), 60);
+        assert_eq!(parse_delay_with_reference("300", now), 300);
+
+        // 2. 単位指定
+        assert_eq!(parse_delay_with_reference("10s", now), 10);
+        assert_eq!(parse_delay_with_reference("5m", now), 300);
+        assert_eq!(parse_delay_with_reference("2h", now), 7200);
+        assert_eq!(parse_delay_with_reference("30秒", now), 30);
+        assert_eq!(parse_delay_with_reference("10分", now), 600);
+        assert_eq!(parse_delay_with_reference("1時間", now), 3600);
+
+        // 3. 当日の後刻指定 (10:50 -> 11:00 = 10分 = 600秒)
+        assert_eq!(parse_delay_with_reference("11:00", now), 600);
+        // 秒付き指定 (10:50:00 -> 10:50:30 = 30秒)
+        assert_eq!(parse_delay_with_reference("10:50:30", now), 30);
+
+        // 4. 翌日の同時刻指定 (10:50 -> 10:00 = 23時間10分 = 83400秒)
+        assert_eq!(parse_delay_with_reference("10:00", now), 83400);
     }
 
     #[test]
@@ -277,5 +440,19 @@ mod tests {
     fn test_resolve_message_newlines() {
         let msg = resolve_message(Some("1行目\\n2行目\\r\\n3行目".into()), None);
         assert_eq!(msg, "1行目\n2行目\n3行目");
+    }
+
+    #[test]
+    fn test_parse_monitor_target() {
+        assert_eq!(parse_monitor_target("cursor"), MonitorTarget::Cursor);
+        assert_eq!(parse_monitor_target("c"), MonitorTarget::Cursor);
+        assert_eq!(parse_monitor_target("mouse"), MonitorTarget::Cursor);
+        assert_eq!(parse_monitor_target("primary"), MonitorTarget::Primary);
+        assert_eq!(parse_monitor_target("p"), MonitorTarget::Primary);
+        assert_eq!(parse_monitor_target("main"), MonitorTarget::Primary);
+        assert_eq!(parse_monitor_target("0"), MonitorTarget::Index(0));
+        assert_eq!(parse_monitor_target("1"), MonitorTarget::Index(1));
+        assert_eq!(parse_monitor_target("2"), MonitorTarget::Index(2));
+        assert_eq!(parse_monitor_target("unknown"), MonitorTarget::Cursor);
     }
 }

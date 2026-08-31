@@ -28,7 +28,9 @@ pub struct MyMsgApp {
     pub font_size: f32,
     /// 点滅エフェクトフラグ
     pub blink: bool,
-    /// アプリケーション起動時刻（点滅周期計算用）
+    /// 自動消去タイマー（秒単位、0は無効）
+    pub timeout_secs: u64,
+    /// アプリケーション起動時刻（点滅周期・タイムアウト計算用）
     pub start_time: Instant,
 }
 
@@ -57,6 +59,7 @@ impl MyMsgApp {
             font_id,
             font_size,
             blink: args.blink,
+            timeout_secs: args.timeout,
             start_time: Instant::now(),
         }
     }
@@ -68,6 +71,18 @@ impl eframe::App for MyMsgApp {
         if ctx.input(|i| i.key_pressed(egui::Key::Escape) || i.key_pressed(egui::Key::Enter)) {
             ctx.send_viewport_cmd(ViewportCommand::Close);
             return;
+        }
+
+        // 自動消去タイマー判定（指定秒数経過で自動終了）
+        if self.timeout_secs > 0 {
+            let elapsed = self.start_time.elapsed();
+            if elapsed >= Duration::from_secs(self.timeout_secs) {
+                ctx.send_viewport_cmd(ViewportCommand::Close);
+                return;
+            }
+            // タイムアウト検知のための再描画要求
+            let remaining = Duration::from_secs(self.timeout_secs).saturating_sub(elapsed);
+            ctx.request_repaint_after(remaining.min(Duration::from_millis(200)));
         }
 
         // システムテーマの判定 (ダークモード判定)

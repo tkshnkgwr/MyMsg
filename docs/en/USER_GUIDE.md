@@ -70,9 +70,31 @@ MyMsg "Summary:\n- Success: 120\n- Skipped: 3\n- Failed: 0" -i ok
 MyMsg "Team sync meeting starting in 5 minutes" -t light -i info
 ```
 
-### 10-Minute Timed Reminder (600s)
+### Timed Reminders (Seconds, Units, or Exact Time)
 ```powershell
-MyMsg "10 minutes elapsed. Time to stretch!" -d 600 -c gold -i info
+# 10 minutes from now (supports 10m, 1h, 30s, or seconds)
+MyMsg "10 minutes elapsed. Time to stretch!" -d 10m -c gold -i info
+
+# Exact time of day (12:00 lunch reminder)
+MyMsg "Lunch break time!" -d 12:00 -i ok
+
+# End of workday desktop banner toast at 18:00
+MyMsg "End of day reminder" -d 18:00 --toast -i info
+```
+
+### Explicit Monitor Placement
+```powershell
+MyMsg "Main Screen Alert" --monitor primary -i ok
+```
+
+### Auto-Dismissing Popup (5-Second Toast-like Popup)
+```powershell
+MyMsg "Quick Status Check" --timeout 5 -i ok
+```
+
+### OS Native Toast Notification Mode (No GUI Window)
+```powershell
+MyMsg "Background job completed" --toast -i ok
 ```
 
 ---

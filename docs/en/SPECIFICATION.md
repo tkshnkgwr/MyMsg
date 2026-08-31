@@ -41,7 +41,10 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--font` | `-f` | `String` | `"default"`| Font family (`default`/`sans`, `mono`/`2`/`monospace`, `serif`/`3`, `impact`). |
 | `--icon` | `-i` | `String` | None | Icon symbol type (`info`, `warn`, `error`, `ok`). |
 | `--theme` | `-t` | `String` | `"system"` | Theme preset (`system`, `dark`, `light`). |
-| `--delay` | `-d` | `u64` | `0` | Delay duration in seconds before popup appears (capped at 3600s). |
+| `--delay` | `-d` | `String` | `"0"` | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h). |
+| `--monitor`| - | `String` | `"cursor"` | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...). |
+| `--timeout`| - | `u64` | `0` | Auto-dismiss timer in seconds (0 to disable). |
+| `--toast` | `-T` | `bool` | `false` | OS native toast notification mode (no GUI window, immediate exit). |
 | `--help` | `-h` | - | - | Print help information and exit. |
 | `--version` | `-V` | - | - | Print version information and exit. |
 
@@ -158,12 +161,16 @@ The `--color` and `--bg-color` options accept case-insensitive color inputs:
 
 ---
 
-## 9. Timer & Delayed Popup (`clamp_delay_seconds`)
+## 9. Timer & Delayed Notification (`parse_delay_to_seconds`, `clamp_delay_seconds`)
 
-When `--delay <sec>` (`-d`) is specified:
-1. Seconds are clamped safely between `0` and `3600` (max 1 hour) via `clamp_delay_seconds(delay)`.
-2. The main thread sleeps using `std::thread::sleep` **before** initializing any GUI or window contexts.
-3. Resource utilization (CPU and GPU memory) is strictly zero during the sleep duration.
+When `--delay <spec>` (`-d`) is specified:
+1. Input string is parsed flexibly:
+   - **Seconds**: `60`, `300`, `3600`
+   - **Units**: `10s`, `10m` (minutes), `1h` (hours)
+   - **Time of Day**: `12:00`, `17:30:00` (auto-calculates difference from current local time; rollover to next day if past)
+2. Calculated delay is safety-capped between `0` and `86400` seconds (24 hours) via `clamp_delay_seconds(delay)`.
+3. The main thread sleeps using `std::thread::sleep` **before** initializing any GUI or window contexts.
+4. Resource utilization (CPU and GPU memory) is strictly zero during sleep.
 
 ---
 
@@ -192,18 +199,49 @@ Registered Font Families:
 
 ---
 
-## 12. User Interaction & Dismissal Conditions
+## 12. Display & Monitor Placement (`--monitor`)
 
-| Action | Behavior | Exit Code |
+`--monitor <TARGET>` explicitly targets a display screen for popup centering:
+
+| Target Value | Behavior |
+| :--- | :--- |
+| `cursor` (default) / `c`, `mouse`, `active` | Centers popup on the active display containing the mouse cursor |
+| `primary` / `p`, `main` | Centers popup on the primary display work area |
+| `0`, `1`, `2` ... | Centers popup on the display matching the specified enumerated index (falls back to primary if out of range) |
+
+---
+
+## 13. Auto-Dismissal Timer (`--timeout`)
+
+When `--timeout <seconds>` is specified:
+- Closes the window automatically after the elapsed duration and exits cleanly with exit code `0`.
+- `0` (default) disables auto-dismissal, keeping the popup pinned until manually dismissed.
+
+---
+
+## 14. OS Native Toast Notification Mode (`--toast` / `-T`)
+
+When `--toast` is specified:
+- Bypasses GUI window creation and sends an OS-native desktop toast notification (Windows Action Center / macOS / Linux) directly.
+- Exits immediately after dispatch with exit code `0`.
+- Supports `--icon` symbols and `--delay` timers.
+
+---
+
+## 15. User Interaction & Dismissal Conditions
+
+| Action / Trigger | Behavior | Exit Code |
 | :--- | :--- | :---: |
 | **`Esc` Key Press** | Immediately closes window and terminates process | `0` |
 | **`Enter` Key Press** | Immediately closes window and terminates process | `0` |
 | **Click `[✕ 閉じる (Esc / Enter)]`** | Immediately closes window and terminates process | `0` |
 | **Window Frame `✕` Close Button** | Standard window dismissal and process exit | `0` |
+| **`--timeout` Expired** | Automatically closes window after specified seconds | `0` |
+| **`--toast` Dispatched** | Exits immediately after notification dispatch | `0` |
 
 ---
 
-## 13. Constraints
-- Maximum delay duration is capped at 3,600 seconds (1 hour).
+## 16. Constraints
+- Maximum delay duration is capped at 86,400 seconds (24 hours).
 - Designed as a single-instance popup per process invocation. Multiple concurrent invocations run as isolated OS windows.
 

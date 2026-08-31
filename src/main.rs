@@ -21,23 +21,32 @@ pub mod cli;
 pub mod color;
 pub mod font;
 pub mod monitor;
+pub mod toast;
 
 use app::MyMsgApp;
 use clap::Parser;
-use cli::{CliArgs, calculate_window_dimensions, clamp_delay_seconds};
+use cli::{CliArgs, calculate_window_dimensions, parse_delay_to_seconds, parse_monitor_target};
 use eframe::egui::ViewportBuilder;
 use font::setup_japanese_fonts;
-use monitor::get_active_monitor_center_position;
+use monitor::get_monitor_center_position;
 use std::thread;
 use std::time::Duration;
 
 fn main() -> eframe::Result<()> {
     let args = CliArgs::parse();
 
-    // 遅延表示処理（指定秒数スリープしてからウィンドウを作成）
-    if args.delay > 0 {
-        let clamped_delay = clamp_delay_seconds(args.delay);
-        thread::sleep(Duration::from_secs(clamped_delay));
+    // 遅延表示処理（秒数・時刻・単位パース後、スリープしてから通知またはウィンドウを作成）
+    let delay_secs = parse_delay_to_seconds(&args.delay);
+    if delay_secs > 0 {
+        thread::sleep(Duration::from_secs(delay_secs));
+    }
+
+    // OS標準トースト通知モード（GUIウィンドウを立ち上げずに即時送信・終了）
+    if args.toast {
+        if let Err(err) = toast::send_toast_notification(&args) {
+            eprintln!("MyMsg: トースト通知の送信に失敗しました: {err}");
+        }
+        return Ok(());
     }
 
     let (_, (width, height)) = calculate_window_dimensions(&args.size, args.font_size);
@@ -50,8 +59,9 @@ fn main() -> eframe::Result<()> {
         .with_active(true)
         .with_decorations(true);
 
-    // マルチモニター環境で現在操作中のディスプレイ中央に配置
-    if let Some(pos) = get_active_monitor_center_position(width, height) {
+    // 指定されたモニター（既定: マウスカーソル位置）の中央に配置
+    let monitor_target = parse_monitor_target(&args.monitor);
+    if let Some(pos) = get_monitor_center_position(monitor_target, width, height) {
         viewport = viewport.with_position(pos);
     }
 

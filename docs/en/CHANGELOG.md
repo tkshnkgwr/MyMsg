@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-08-31
+
+### Added
+- **Explicit Monitor Placement (`--monitor <cursor|primary|0|1...>`)**:
+  - Targets screens by cursor position (default), primary display (`primary`), or enumerated display index using Win32 `EnumDisplayMonitors`.
+- **Auto-Dismissal Timer (`--timeout <seconds>`)**:
+  - Automatically closes popup and exits cleanly after specified seconds (default `0` keeps window open until manual dismissal).
+- **OS Native Toast Notification Mode (`--toast` / `-T`)**:
+  - Dispatches standard OS desktop toast notifications directly via `notify-rust` without creating a GUI window.
+- **Time-of-Day (`HH:MM` / `HH:MM:SS`) & Duration Unit (`10m`, `1h`, `10分`) Delay Support**:
+  - Automatic difference calculation from current local time using `chrono`, with 24-hour rollover support for past times.
+- **Extended Delay Cap (24 Hours / 86,400 Seconds)**:
+  - Increased safety clamp from 1 hour to 24 hours.
+- **Enhanced CLI Help (`-h` / `--help`)**:
+  - Comprehensive usage examples for time formats and options.
+- **Expanded Automated Test Suite**:
+  - Unit tests for time calculation, rollover, monitor targeting, and delay parsing (11 total tests).
+
+---
+
 ## [0.1.0] - 2026-08-28
 
 ### Added

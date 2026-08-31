@@ -25,8 +25,8 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
 ## ✨ Features
 
 - 🪟 **Always on Top**: Window stays pinned above all other windows and full-screen applications.
-- 🖥️ **Multi-Monitor Cursor Auto-Follow**: Automatically opens centered on the active display where the mouse cursor resides.
-- ⚡ **Instant Dismissal**: Dismiss immediately by pressing `Esc` or `Enter` (Process Exit Code 0), or clicking the close button.
+- 🖥️ **Multi-Monitor Cursor Auto-Follow & Explicit Targeting**: Automatically opens on active cursor display (default), or explicitly target screens with `--monitor primary` or display index.
+- ⚡ **Instant Dismissal & Auto-Timeout**: Dismiss immediately with `Esc` or `Enter` (Exit code 0), or automatically close after a duration with `--timeout <seconds>`.
 - 📑 **Multi-Line & Auto Word Wrap**: Automatically wraps long messages and newline characters (`\n`) with full line centering.
 - 💡 **Status Icons (`--icon` / `-i`)**: Display status symbols for `info` (ℹ), `warn` (⚠), `error` (✖), and `ok` (✔).
 - 🌗 **Theme Presets (`--theme` / `-t`)**: `system` (automatic OS light/dark detection - default), `dark`, and `light` modes.
@@ -36,7 +36,8 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
   - 1-character shorthands (`r`, `g`, `b`, `y`, `w`, `k`, `c`, `m`, `o`, `p`)
   - Typo tolerance (`bule` -> Blue)
   - Hex codes (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, optional leading `#`)
-- ⏱️ **Zero-Overhead Timer / Delay Mode (`--delay` / `-d`)**: Wait for a specified duration in seconds before displaying (zero GUI resource consumption during sleep mode; safety-capped at 3600s).
+- ⏱️ **Zero-Overhead Timer / Delay & Time-of-Day Mode (`--delay` / `-d`)**: Supports seconds (`60`), unit duration (`10m`, `1h`), or exact time of day (`12:00`) before displaying notification (zero GUI resource consumption during sleep mode; safety-capped at 24h / 86400s).
+- 🍞 **OS Native Toast Notification Mode (`--toast` / `-T`)**: Dispatches a standard OS desktop banner notification (Action Center / Notification Center) and exits immediately without spawning a GUI window.
 - 🚨 **Blink Mode (`--blink` / `-b`)**: Pulses text opacity every ~0.5s for urgent alerts.
 - 🔤 **Automatic CJK / Japanese Font Detection**: Automatically discovers and registers OS Japanese fonts (Windows/macOS/Linux) to prevent tofu (□) or mojibake.
 - 📦 **Self-Contained Executable**: Single zero-dependency native binary.
@@ -76,7 +77,10 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--font <FONT>` | `-f` | `default` | Font family type (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`) |
 | `--icon <ICON>` | `-i` | None | Icon symbol type (`info`, `warn`, `error`, `ok`) |
 | `--theme <THEME>` | `-t` | `system` | Theme selection (`system`, `dark`, `light`) |
-| `--delay <SEC>` | `-d` | `0` | Delay duration in seconds before showing popup (0 to 3600s) |
+| `--delay <SPEC>` | `-d` | `0` | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h) |
+| `--monitor <TARGET>` | - | `cursor` | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...) |
+| `--timeout <SEC>` | - | `0` | Auto-dismiss timer in seconds (0 to disable) |
+| `--toast` | `-T` | `false` | OS native toast notification mode (no GUI window, immediate exit) |
 | `--help` | `-h` | - | Display help message and exit |
 | `--version` | `-V` | - | Display version information and exit |
 
