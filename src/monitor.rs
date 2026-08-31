@@ -171,6 +171,7 @@ pub fn get_monitor_center_position(
 }
 
 /// 既存互換用：カーソル位置のモニター中央座標を取得
+#[allow(dead_code)]
 pub fn get_active_monitor_center_position(
     window_width: f32,
     window_height: f32,
