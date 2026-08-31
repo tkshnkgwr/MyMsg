@@ -10,8 +10,8 @@ use crate::cli::MonitorTarget;
 use windows_sys::Win32::Foundation::{BOOL, LPARAM, POINT, RECT};
 #[cfg(windows)]
 use windows_sys::Win32::Graphics::Gdi::{
-    EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITORINFO,
-    MONITOR_DEFAULTTONEAREST, MONITOR_DEFAULTTOPRIMARY, MonitorFromPoint,
+    EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITOR_DEFAULTTONEAREST,
+    MONITOR_DEFAULTTOPRIMARY, MONITORINFO, MonitorFromPoint,
 };
 #[cfg(windows)]
 use windows_sys::Win32::UI::WindowsAndMessaging::GetCursorPos;
@@ -110,11 +110,7 @@ pub fn get_monitor_center_position(
                         window_height,
                     ))
                 } else {
-                    get_monitor_center_position(
-                        MonitorTarget::Primary,
-                        window_width,
-                        window_height,
-                    )
+                    get_monitor_center_position(MonitorTarget::Primary, window_width, window_height)
                 }
             }
             MonitorTarget::Primary => {
@@ -124,7 +120,11 @@ pub fn get_monitor_center_position(
                     .iter()
                     .find(|m| (m.dwFlags & MONITORINFOF_PRIMARY) != 0)
                 {
-                    return Some(calculate_center(&primary.rcWork, window_width, window_height));
+                    return Some(calculate_center(
+                        &primary.rcWork,
+                        window_width,
+                        window_height,
+                    ));
                 }
 
                 // 2. 原点 (0,0) を含むモニター

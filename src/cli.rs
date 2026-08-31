@@ -268,59 +268,49 @@ pub fn parse_delay_with_reference(input: &str, now: NaiveTime) -> u64 {
     }
 
     // 2. 単位付き指定 (s, m, h, 秒, 分, 時間)
-    if let Some(num_str) = clean.strip_suffix('s') {
-        if let Ok(num) = num_str.trim().parse::<u64>() {
-            return clamp_delay_seconds(num);
-        }
-    }
-    if let Some(num_str) = clean.strip_suffix('m') {
-        if let Ok(num) = num_str.trim().parse::<u64>() {
-            return clamp_delay_seconds(num * 60);
-        }
-    }
-    if let Some(num_str) = clean.strip_suffix('h') {
-        if let Ok(num) = num_str.trim().parse::<u64>() {
-            return clamp_delay_seconds(num * 3600);
-        }
-    }
-    if let Some(num_str) = clean.strip_suffix("秒") {
-        if let Ok(num) = num_str.trim().parse::<u64>() {
-            return clamp_delay_seconds(num);
-        }
-    }
-    if let Some(num_str) = clean.strip_suffix("分") {
-        if let Ok(num) = num_str.trim().parse::<u64>() {
-            return clamp_delay_seconds(num * 60);
-        }
-    }
-    if let Some(num_str) = clean.strip_suffix("時間") {
-        if let Ok(num) = num_str.trim().parse::<u64>() {
-            return clamp_delay_seconds(num * 3600);
+    let unit_multipliers = [
+        ("s", 1u64),
+        ("m", 60),
+        ("h", 3600),
+        ("秒", 1),
+        ("分", 60),
+        ("時間", 3600),
+    ];
+    for (suffix, mult) in unit_multipliers {
+        if let Some(num_str) = clean.strip_suffix(suffix)
+            && let Ok(num) = num_str.trim().parse::<u64>()
+        {
+            return clamp_delay_seconds(num * mult);
         }
     }
 
     // 3. 時刻指定 (HH:MM または HH:MM:SS)
     if clean.contains(':') {
         let parts: Vec<&str> = clean.split(':').collect();
-        if parts.len() == 2 || parts.len() == 3 {
-            if let (Ok(h), Ok(m)) = (parts[0].trim().parse::<u32>(), parts[1].trim().parse::<u32>()) {
-                let s = if parts.len() == 3 {
-                    parts[2].trim().parse::<u32>().unwrap_or(0)
+        if (parts.len() == 2 || parts.len() == 3)
+            && let (Ok(h), Ok(m)) = (
+                parts[0].trim().parse::<u32>(),
+                parts[1].trim().parse::<u32>(),
+            )
+        {
+            let s = if parts.len() == 3 {
+                parts[2].trim().parse::<u32>().unwrap_or(0)
+            } else {
+                0
+            };
+            if h < 24
+                && m < 60
+                && s < 60
+                && let Some(target_time) = NaiveTime::from_hms_opt(h, m, s)
+            {
+                let now_secs = now.num_seconds_from_midnight() as i64;
+                let target_secs = target_time.num_seconds_from_midnight() as i64;
+                let diff = if target_secs >= now_secs {
+                    target_secs - now_secs
                 } else {
-                    0
+                    (86400 + target_secs) - now_secs
                 };
-                if h < 24 && m < 60 && s < 60 {
-                    if let Some(target_time) = NaiveTime::from_hms_opt(h, m, s) {
-                        let now_secs = now.num_seconds_from_midnight() as i64;
-                        let target_secs = target_time.num_seconds_from_midnight() as i64;
-                        let diff = if target_secs >= now_secs {
-                            target_secs - now_secs
-                        } else {
-                            (86400 + target_secs) - now_secs
-                        };
-                        return clamp_delay_seconds(diff as u64);
-                    }
-                }
+                return clamp_delay_seconds(diff as u64);
             }
         }
     }
