@@ -11,7 +11,7 @@ This document contains the execution report and verification evidence for the `M
 | **OS** | Windows 11 (x86_64) |
 | **Rust Version** | 1.80+ / stable-x86_64-pc-windows-msvc |
 | **Cargo Version** | cargo 1.80+ |
-| **Target Version** | v0.2.0 |
+| **Target Version** | v1.0.0 |
 | **Execution Date** | 2026-08-31 |
 
 ---
