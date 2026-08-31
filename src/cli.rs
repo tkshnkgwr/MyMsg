@@ -238,9 +238,9 @@ pub fn calculate_window_dimensions(
     custom_font_size: Option<f32>,
 ) -> (f32, (f32, f32)) {
     let (default_font_size, dims) = match size_str.trim().to_lowercase().as_str() {
-        "small" | "s" => (20.0, (300.0, 150.0)),
-        "large" | "l" => (36.0, (650.0, 350.0)),
-        _ => (26.0, (450.0, 220.0)), // medium (既定値)
+        "small" | "s" => (20.0_f32, (300.0_f32, 150.0_f32)),
+        "large" | "l" => (36.0_f32, (650.0_f32, 350.0_f32)),
+        _ => (26.0_f32, (450.0_f32, 220.0_f32)), // medium (既定値)
     };
 
     let final_font_size = custom_font_size.unwrap_or(default_font_size);

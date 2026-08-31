@@ -62,8 +62,8 @@ fn calculate_center(rc_work: &RECT, window_width: f32, window_height: f32) -> [f
     let work_w = (rc_work.right - rc_work.left) as f32;
     let work_h = (rc_work.bottom - rc_work.top) as f32;
 
-    let pos_x = left + (work_w - window_width) / 2.0;
-    let pos_y = top + (work_h - window_height) / 2.0;
+    let pos_x = left + (work_w - window_width) / 2.0_f32;
+    let pos_y = top + (work_h - window_height) / 2.0_f32;
 
     [pos_x, pos_y]
 }

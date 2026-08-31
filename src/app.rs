@@ -100,7 +100,7 @@ impl eframe::App for MyMsgApp {
         let mut display_color = palette.text_color;
         if self.blink {
             let elapsed = self.start_time.elapsed().as_secs_f32();
-            let phase = (elapsed % 1.0) < 0.5;
+            let phase = (elapsed % 1.0_f32) < 0.5_f32;
             if !phase {
                 display_color = Color32::from_rgba_unmultiplied(
                     palette.text_color.r(),
@@ -117,19 +117,19 @@ impl eframe::App for MyMsgApp {
             .frame(
                 egui::Frame::none()
                     .fill(palette.bg_color)
-                    .inner_margin(egui::Margin::symmetric(16.0, 8.0)),
+                    .inner_margin(egui::Margin::symmetric(16.0_f32, 8.0_f32)),
             )
             .show(ctx, |ui| {
                 ui.vertical_centered(|ui| {
                     let close_btn = ui.add(
                         egui::Button::new(
                             RichText::new("✕ 閉じる (Esc / Enter)")
-                                .size(12.0)
+                                .size(12.0_f32)
                                 .color(palette.button_text),
                         )
                         .fill(palette.button_bg)
-                        .stroke(egui::Stroke::new(1.0, palette.button_stroke))
-                        .rounding(4.0),
+                        .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                        .rounding(4.0_f32),
                     );
 
                     if close_btn.clicked() {
@@ -141,7 +141,7 @@ impl eframe::App for MyMsgApp {
         // メッセージコンテンツ領域（利用可能領域全体での上下左右完全中央配置＆縦スクロール対応）
         let central_frame = egui::Frame::none()
             .fill(palette.bg_color)
-            .inner_margin(egui::Margin::symmetric(16.0, 8.0));
+            .inner_margin(egui::Margin::symmetric(16.0_f32, 8.0_f32));
 
         egui::CentralPanel::default()
             .frame(central_frame)
@@ -154,7 +154,7 @@ impl eframe::App for MyMsgApp {
 
                         // アイコン幅と余白を考慮したテキストの最大折り返し幅
                         let text_wrap_width = if self.icon.is_some() {
-                            (avail_w - (self.font_size * 1.3 + 12.0)).max(60.0)
+                            (avail_w - (self.font_size * 1.3_f32 + 12.0_f32)).max(60.0_f32)
                         } else {
                             avail_w
                         };
@@ -171,15 +171,15 @@ impl eframe::App for MyMsgApp {
 
                         let text_h = galley.size().y;
                         let icon_h = if self.icon.is_some() {
-                            self.font_size * 1.3
+                            self.font_size * 1.3_f32
                         } else {
-                            0.0
+                            0.0_f32
                         };
                         let content_h = text_h.max(icon_h);
 
                         // 上下の中央に配置するための垂直パディングを計算
                         if avail_h > content_h {
-                            let top_padding = (avail_h - content_h) / 2.0;
+                            let top_padding = (avail_h - content_h) / 2.0_f32;
                             ui.add_space(top_padding);
                         }
 
@@ -193,11 +193,11 @@ impl eframe::App for MyMsgApp {
                                         |ui| {
                                             ui.label(
                                                 RichText::new(icon.symbol())
-                                                    .size(self.font_size * 1.3)
+                                                    .size(self.font_size * 1.3_f32)
                                                     .color(icon.default_color())
                                                     .strong(),
                                             );
-                                            ui.add_space(8.0);
+                                            ui.add_space(8.0_f32);
                                             ui.label(galley);
                                         },
                                     );
