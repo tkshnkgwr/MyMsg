@@ -25,7 +25,7 @@ pub mod toast;
 
 use app::MyMsgApp;
 use clap::Parser;
-use cli::{CliArgs, calculate_window_dimensions, parse_delay_to_seconds, parse_monitor_target};
+use cli::{calculate_window_dimensions, parse_delay_to_seconds, parse_monitor_target, CliArgs};
 use eframe::egui::ViewportBuilder;
 use font::setup_japanese_fonts;
 use monitor::get_monitor_center_position;

@@ -10,8 +10,8 @@ use crate::cli::MonitorTarget;
 use windows_sys::Win32::Foundation::{BOOL, LPARAM, POINT, RECT};
 #[cfg(windows)]
 use windows_sys::Win32::Graphics::Gdi::{
-    EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITOR_DEFAULTTONEAREST,
-    MONITOR_DEFAULTTOPRIMARY, MONITORINFO, MonitorFromPoint,
+    EnumDisplayMonitors, GetMonitorInfoW, MonitorFromPoint, HDC, HMONITOR, MONITORINFO,
+    MONITOR_DEFAULTTONEAREST, MONITOR_DEFAULTTOPRIMARY,
 };
 #[cfg(windows)]
 use windows_sys::Win32::UI::WindowsAndMessaging::GetCursorPos;

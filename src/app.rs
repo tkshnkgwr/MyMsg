@@ -4,7 +4,7 @@
 //! ピクセル完全な上下左右中央配置、スクロール、点滅、キーボードイベント処理を提供します。
 
 use crate::cli::{
-    CliArgs, IconType, ThemeMode, calculate_window_dimensions, parse_icon, parse_theme,
+    calculate_window_dimensions, parse_icon, parse_theme, CliArgs, IconType, ThemeMode,
 };
 use crate::color::resolve_theme_palette;
 use eframe::egui::{self, Color32, FontFamily, FontId, RichText, ViewportCommand};
@@ -86,10 +86,7 @@ impl eframe::App for MyMsgApp {
         }
 
         // システムテーマの判定 (ダークモード判定)
-        let is_dark_system = match ctx.system_theme() {
-            Some(egui::Theme::Light) => false,
-            _ => true, // ダークまたは未設定時はデフォルトでダークモード
-        };
+        let is_dark_system = !matches!(ctx.system_theme(), Some(egui::Theme::Light));
 
         // カラーパレットの解決
         let palette = resolve_theme_palette(

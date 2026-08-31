@@ -12,10 +12,10 @@ pub fn setup_japanese_fonts(ctx: &egui::Context) {
 
     // 日本語ゴシック系フォント候補 (Windows / macOS / Linux)
     let font_candidates = [
-        format!("{}\\Fonts\\meiryo.ttc", windir),
-        format!("{}\\Fonts\\YuGothM.ttc", windir),
-        format!("{}\\Fonts\\msgothic.ttc", windir),
-        format!("{}\\Fonts\\msyh.ttc", windir),
+        format!("{windir}\\Fonts\\meiryo.ttc"),
+        format!("{windir}\\Fonts\\YuGothM.ttc"),
+        format!("{windir}\\Fonts\\msgothic.ttc"),
+        format!("{windir}\\Fonts\\msyh.ttc"),
         "/System/Library/Fonts/Hiragino Sans GB.ttc".to_string(),
         "/System/Library/Fonts/PingFang.ttc".to_string(),
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc".to_string(),
@@ -49,8 +49,8 @@ pub fn setup_japanese_fonts(ctx: &egui::Context) {
 
     // 明朝系（Serif）フォント候補
     let serif_candidates = [
-        format!("{}\\Fonts\\msmincho.ttc", windir),
-        format!("{}\\Fonts\\yumin.ttf", windir),
+        format!("{windir}\\Fonts\\msmincho.ttc"),
+        format!("{windir}\\Fonts\\yumin.ttf"),
     ];
     let mut serif_loaded = false;
     for path in &serif_candidates {

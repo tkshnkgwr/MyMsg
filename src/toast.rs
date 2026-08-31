@@ -3,7 +3,7 @@
 //! `notify-rust` クレートを使用して、OSネイティブ（Windows トースト通知 / macOS / Linux）の
 //! デスクトップ通知センター経由でメッセージを送信します。
 
-use crate::cli::{CliArgs, parse_icon, resolve_message};
+use crate::cli::{parse_icon, resolve_message, CliArgs};
 use notify_rust::{Notification, Timeout};
 
 /// OS標準のトースト通知を送信します。
