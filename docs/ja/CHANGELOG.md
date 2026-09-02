@@ -6,7 +6,18 @@
 
 ---
 
+## [Unreleased]
+
+### 変更・改善 (Changed & Improved)
+- **ドキュメント整備**:
+  - Windows タスクスケジューラ / cron 等の定期バックグラウンドジョブとの連携ガイドを追加 (`USER_GUIDE.md`, `README.md`, `README_JA.md`)。
+  - セッション 0 分離（Session 0 Isolation）の注意点および `--timeout` オプションの併用推奨理由を仕様書に明記 (`SPECIFICATION.md`)。
+  - プロセス重複制御（`--single-instance`）、非対話セッション検出、タイムアウト進捗バーなどの次期計画をタスクリストに追加 (`TODO.md`)。
+  - リソース消費指標（`FOOTPRINTS.md`）の実測値を最新化（リリースバイナリ実測サイズ **~5.2 MB**、トースト通知モードの指標等を追加）。
+
+
 ## [1.0.0] - 2026-08-31
+
 
 ### 追加 (Added)
 - **明示的なモニター指定オプション (`--monitor <cursor|primary|0|1...>`)**:

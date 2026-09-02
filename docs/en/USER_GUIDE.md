@@ -136,3 +136,28 @@ if %ERRORLEVEL% LEQ 1 (
 ./MyMsg "Deployment succeeded!" -c cyan || \
 ./MyMsg "Deployment failed!" -c red -b
 ```
+
+### 3.4 Windows Task Scheduler & Scheduled Jobs Integration
+
+When triggering `MyMsg` periodically via **Windows Task Scheduler**, `cron`, or background daemons, using **`--timeout` or `--toast` (`-T`) is strongly recommended**.
+
+#### Key Windows Task Scheduler Configuration Guidelines
+1. **Security Options**:
+   - Ensure **"Run only when user is logged on"** is selected.
+   - *Note*: If configured with "Run whether user is logged on or not" or under the `SYSTEM` account, Windows Session 0 Isolation will execute the process in a non-interactive background session, preventing the popup window from being visible on your desktop.
+2. **Always Specify `--timeout <seconds>` (Strongly Recommended)**:
+   - If an alert pops up while you are away from the computer and no timeout is set, the process will remain open indefinitely.
+   - This can cause Task Scheduler's "Do not start a new instance" rule to **block or skip subsequent scheduled runs**.
+   - Using `--timeout 15` or `--timeout 30` ensures the window automatically closes and the process exits cleanly.
+
+#### Task Scheduler Action Setup Example
+- **Program/script**: `C:\Tools\MyMsg\MyMsg.exe` (full absolute path)
+- **Add arguments (optional)**: `"Scheduled backup completed" -i ok -c green --timeout 20`
+- **Start in (optional)**: `C:\Tools\MyMsg`
+
+#### OS Toast Mode for Scheduled Notifications
+For subtle notifications that appear in the bottom-right action center without interrupting your workflow with a modal popup:
+```powershell
+MyMsg "Stand up and stretch!" -i info --toast
+```
+

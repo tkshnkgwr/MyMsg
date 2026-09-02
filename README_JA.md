@@ -133,6 +133,16 @@ MyMsg "ミーティングの時間です" -d 300 -c gold -i info
 npm run build; MyMsg "npm build 完了！" -c cyan -i ok
 ```
 
+### タスクスケジューラ / 定期実行（`--timeout` 併用推奨）
+```powershell
+# 離席時でも自動で閉じる安心設計（15秒後に自動消去）
+MyMsg "定期レポート更新完了" -i ok -c green --timeout 15
+
+# OS通知センターへのトースト通知
+MyMsg "ストレッチの時間です" -i info --toast
+```
+
+
 ---
 
 ## 📚 ドキュメント一覧

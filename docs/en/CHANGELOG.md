@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Changed & Improved
+- **Documentation Overhaul**:
+  - Added Windows Task Scheduler and cron automation integration guide (`USER_GUIDE.md`, `README.md`, `README_JA.md`).
+  - Added Windows Session 0 Isolation security constraints and `--timeout` best practices (`SPECIFICATION.md`).
+  - Added upcoming roadmap items for instance replacement (`--single-instance`), headless session detection, and timeout progress bars (`TODO.md`).
+  - Updated resource benchmark footprints in `FOOTPRINTS.md` (measured release binary size **~5.2 MB**, added OS toast mode latency/RAM metrics).
+
+
 ## [1.0.0] - 2026-08-31
+
 
 ### Added
 - **Explicit Monitor Placement (`--monitor <cursor|primary|0|1...>`)**:

@@ -133,6 +133,16 @@ MyMsg "Time for the meeting" -d 300 -c gold -i info
 npm run build; MyMsg "npm build complete!" -c cyan -i ok
 ```
 
+### Scheduled Tasks & Automation (`--timeout` recommended)
+```powershell
+# Auto-dismisses in 15 seconds so unattended runs never block
+MyMsg "Daily backup completed" -i ok -c green --timeout 15
+
+# Desktop toast notification mode
+MyMsg "Time to stretch!" -i info --toast
+```
+
+
 ---
 
 ## 📚 Documentation

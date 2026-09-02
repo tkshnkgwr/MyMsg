@@ -27,18 +27,24 @@ This document tracks completed implementation milestones and the future enhancem
 
 ## 2. Planned Roadmap
 
-### Phase 2: Display & Placement Customization
+### Phase 2: Display, Placement & Process Control
 - [ ] **Parent Process / Terminal Attachment (`--attach-parent`)**: Position the popup relative to the calling terminal / console window HWND.
+- [ ] **Singleton / Instance Replacement (`--single-instance` / `--replace`)**: Close existing popups or prevent duplicate instances when triggered periodically.
+- [ ] **Headless / Session 0 Detection**: Detect non-interactive sessions and log warnings or automatically fallback to OS toast/logging.
 - [ ] **Cross-Platform Multi-Monitor Support**: Active monitor detection on macOS (CoreGraphics) and Linux (X11 / Wayland).
 
-### Phase 3: Audio & Timers
+### Phase 3: Audio, Alerts & Timer Visuals
 - [ ] **Notification Audio (`--sound` / `--beep`)**: Play optional system chime or beep on popup.
+- [ ] **Timeout Progress & Countdown (`--show-progress`)**: Render a visual countdown progress bar or remaining seconds for auto-dismissing timeouts.
 
-### Phase 4: GUI Enhancements
+### Phase 4: Interaction & Utilities
+- [ ] **Clipboard Copy / Custom Action Buttons (`--copy`, `--action <cmd>`)**: Actionable buttons inside the popup to copy text or run a command.
+- [ ] **Logging to File (`--log <file>`)**: Append invocation timestamps and messages to a log file.
 - [ ] **Window Transparency (`--transparent`)**: Experimental support for frosted glass or alpha-blended windows.
 - [ ] **Custom Emoji/Icon String**: Direct support for custom emoji symbols in icon flag.
 
 ### Phase 5: CI/CD & Distribution
 - [ ] **GitHub Actions Matrix**: Automated cross-compilation for Windows, macOS, and Linux.
 - [ ] **Package Manager Distribution**: Submissions to `winget`, `Scoop`, and `Homebrew`.
+
 

@@ -241,7 +241,16 @@ When `--toast` is specified:
 
 ---
 
-## 16. Constraints
-- Maximum delay duration is capped at 86,400 seconds (24 hours).
-- Designed as a single-instance popup per process invocation. Multiple concurrent invocations run as isolated OS windows.
+## 16. Constraints & Scheduled Background Execution
+
+1. **Maximum Delay Duration**:
+   - The `--delay` wait time is clamped to a maximum of 86,400 seconds (24 hours).
+2. **Concurrent Invocations**:
+   - Designed as a single-instance popup per process invocation. Multiple concurrent invocations spawn separate isolated OS windows.
+3. **Windows Session 0 Isolation & Task Scheduler**:
+   - When launched under Windows services or Task Scheduler configured with "Run whether user is logged on or not" (Session 0), the GUI window will not be rendered onto the active desktop due to Windows security isolation.
+   - Always configure tasks to "Run only when user is logged on" to ensure interactive desktop popups.
+4. **Auto-Dismissal for Periodic Tasks**:
+   - When executed via schedulers or automated background jobs, specifying `--timeout <seconds>` or using `--toast` (`-T`) is strongly recommended to prevent orphaned processes and avoid blocking future scheduled triggers.
+
 
