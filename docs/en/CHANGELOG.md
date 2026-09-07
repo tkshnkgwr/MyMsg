@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.2.0] - 2026-09-07
 
 ### Added
 - **System Notification Sound (`--sound` / `--beep`)**:
   - Plays the OS system chime or beep sound (`MessageBeep` on Windows) on popup display and toast dispatch, dynamically mapping sound tone to `--icon`.
 - **Headless / Non-Interactive (Session 0) Auto-Detection & Fallback**:
   - Automatically detects non-interactive sessions (Windows services, background schedulers without desktop), issues a warning to stderr, and safely falls back to OS desktop toast notification mode (`--toast`).
+
+### Refactored
+- **CLI Submodule Restructuring**:
+  - Modularized `src/cli.rs` into focused submodules (`src/cli/args.rs`, `types.rs`, `time.rs`, `layout.rs`, `mod.rs`) while preserving 100% backward compatibility.
 
 ## [1.1.0] - 2026-09-07
 
