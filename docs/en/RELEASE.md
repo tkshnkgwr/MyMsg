@@ -50,4 +50,4 @@ upx --best --lzma target/release/MyMsg.exe
 ## 4. Distribution Packaging
 
 1. Package `MyMsg.exe`, `README.md`, and `LICENSE` into a ZIP archive.
-2. Publish release assets to GitHub Releases under the version tag (e.g. `v0.1.0`).
+2. Publish release assets to GitHub Releases under the version tag (e.g. `v1.1.0`).

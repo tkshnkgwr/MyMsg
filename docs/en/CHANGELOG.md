@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.1.0] - 2026-09-07
 
 ### Added
 - **Interval & Scheduled Notifications (`--interval`, `--at`, `--count`, `--immediate`)**:
@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced `※` bullet characters with `・` in CLI help text to avoid terminal/IDE squishing.
 - **Documentation Overhaul**:
   - Synced `README.md`, `README_JA.md`, `SPECIFICATION.md`, `USER_GUIDE.md`, and `TODO.md` across both English and Japanese.
+- **Automatic Version Synchronization**:
+  - `clap` version attribute now pulls dynamically from the crate version.
 
 
 ## [1.0.0] - 2026-08-31

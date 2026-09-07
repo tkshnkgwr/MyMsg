@@ -51,4 +51,4 @@ upx --best --lzma target/release/MyMsg.exe
 ## 4. 配布パッケージング
 
 1. `target/release/MyMsg.exe`、`README_JA.md`、`LICENSE` を ZIP アーカイブに圧縮。
-2. GitHub Releases にタグ（例: `v0.1.0`）を付与して ZIP ファイルを添付。
+2. GitHub Releases にタグ（例: `v1.1.0`）を付与して ZIP ファイルを添付。
