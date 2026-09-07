@@ -96,6 +96,10 @@ impl MyMsgApp {
             );
         }
 
+        if args.sound {
+            crate::sound::play_notification_sound(icon);
+        }
+
         Self {
             message,
             custom_text_color: args.color,

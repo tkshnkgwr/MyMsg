@@ -28,5 +28,10 @@ pub fn send_toast_notification(args: &CliArgs) -> Result<(), Box<dyn std::error:
     }
 
     notification.show()?;
+
+    if args.sound {
+        crate::sound::play_notification_sound(icon_opt);
+    }
+
     Ok(())
 }

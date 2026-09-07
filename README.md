@@ -44,6 +44,8 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
 - 🍞 **OS Native Toast Notification Mode (`--toast` / `-T`)**: Dispatches a standard OS desktop banner notification (Action Center / Notification Center) and exits immediately without spawning a GUI window.
 - 🚨 **Blink Mode (`--blink` / `-b`)**: Pulses text opacity every ~0.5s for urgent alerts.
 - 🔤 **Automatic CJK / Japanese Font Detection**: Automatically discovers and registers OS Japanese fonts (Windows/macOS/Linux) to prevent tofu (□) or mojibake.
+- 🔔 **System Notification Sound (`--sound` / `--beep`)**: Plays the OS system chime or beep sound (`MessageBeep` on Windows) on popup display and toast dispatch, dynamically mapping tone to `--icon`.
+- 🛡️ **Headless / Non-Interactive (Session 0) Auto-Detection**: Automatically detects non-interactive sessions (Windows services, background schedulers without desktop), issues a warning, and safely falls back to OS toast notifications.
 - 📦 **Self-Contained Executable**: Single zero-dependency native binary.
 
 ---
@@ -93,6 +95,7 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--log <FILE>`      | -     | None                | Log file path to append popup lifecycle and action history                |
 | `--copy`            | -     | `false`             | Display a "📋 コピー" (Copy) button to copy message to clipboard          |
 | `--action <CMD>`    | -     | None                | Display a "⚡ 実行" (Execute) button to trigger external commands         |
+| `--sound`           | -     | `false`             | Play system notification sound (chime/beep). Alias: `--beep`              |
 | `--help`            | `-h`  | -                   | Display help message and exit                                             |
 | `--version`         | `-V`  | -                   | Display version information and exit                                      |
 
@@ -173,6 +176,15 @@ MyMsg "TOKEN=abc123xyz456" --copy -i info
 
 # One-click button to open log file, appending lifecycle history to log
 MyMsg "Build failed!" -i error --action "notepad.exe C:\Logs\build.log" --log C:\Logs\mymsg.log
+```
+
+### System Notification Sound (Chimes & Beeps)
+```powershell
+# Alert with warning chime
+MyMsg "Critical database connection failure!" -i warn --sound
+
+# Play success chime alongside OS native toast (alias --beep)
+MyMsg "Batch processing complete!" --toast -i ok --beep
 ```
 
 

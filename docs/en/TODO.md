@@ -25,8 +25,10 @@ This document tracks completed implementation milestones and the future enhancem
 - [x] **Timeout Progress & Countdown (`--show-progress`)**: Render an animated visual countdown progress bar and remaining seconds for auto-dismissing timeouts.
 - [x] **Clipboard Copy / Custom Action Buttons (`--copy`, `--action <cmd>`)**: Actionable buttons inside the popup to copy text to clipboard (with feedback) and execute external commands.
 - [x] **Logging to File (`--log <file>`)**: Append invocation timestamps, popup counts, dismiss reasons, and action execution logs to a specified file.
+- [x] **Headless / Non-Interactive Session (Session 0) Detection**: Automatically detect non-interactive environments and fallback to OS toast/logging with warnings.
+- [x] **Notification Sound / Chime Option (`--sound` / `--beep`)**: Play system alerts, chimes, or beeps when popup or toast notification triggers.
 - [x] **CJK / Japanese Font Detection**: OS font auto-discovery to prevent mojibake.
-- [x] **Automated Test Suite**: Unit tests covering parsing, time calculations, theme resolution, logging, and math.
+- [x] **Automated Test Suite**: Unit tests covering parsing, time calculations, theme resolution, logging, session detection, sound, and math.
 
 ---
 
@@ -35,11 +37,10 @@ This document tracks completed implementation milestones and the future enhancem
 ### Phase 2: Display, Placement & Process Control
 - [ ] **Parent Process / Terminal Attachment (`--attach-parent`)**: Position the popup relative to the calling terminal / console window HWND.
 - [ ] **Singleton / Instance Replacement (`--single-instance` / `--replace`)**: Close existing popups or prevent duplicate instances when triggered periodically.
-- [ ] **Headless / Session 0 Detection**: Detect non-interactive sessions and log warnings or automatically fallback to OS toast/logging.
 - [ ] **Cross-Platform Multi-Monitor Support**: Active monitor detection on macOS (CoreGraphics) and Linux (X11 / Wayland).
 
 ### Phase 3: Audio & Alerts
-- [ ] **Notification Audio (`--sound` / `--beep`)**: Play optional system chime or beep on popup.
+- [ ] **Custom Audio File Playback (`--sound-file <path>`)**: Directly play custom WAV / audio files on notification.
 
 ### Phase 4: Interaction & Styling
 - [ ] **Window Transparency (`--transparent`)**: Experimental support for frosted glass or alpha-blended windows.

@@ -30,24 +30,32 @@ graph TD
 
 ## 2. Source Code Module Breakdown
 
-The codebase is organized into 7 focused modules by responsibility:
+The codebase is organized into focused submodules by responsibility:
 
 ```
 src/
-├── main.rs       # Application entry point (main, delay sleep, viewport setup, toast dispatch)
-├── cli.rs        # CLI argument models (CliArgs, IconType, ThemeMode, MonitorTarget, delay parsing)
+├── main.rs       # Application entry point (main, session check, delay sleep, interval runner, toast dispatch)
+├── cli/          # CLI argument parsing, models, and calculation submodule
+│   ├── mod.rs    # Submodule declarations and re-exports for full backwards compatibility
+│   ├── args.rs   # CliArgs struct schema definition and clap attributes
+│   ├── types.rs  # IconType, ThemeMode, MonitorTarget enums and parser functions
+│   ├── time.rs   # Duration units, delay parsing, and scheduled loop wait calculations
+│   └── layout.rs # Window dimension calculations, font sizing, and newline resolution
 ├── color.rs      # Color & theme parser (parse_color, ThemePalette, palette resolver)
 ├── font.rs       # System font auto-detection & registration (setup_japanese_fonts)
 ├── monitor.rs    # Multi-monitor display positioning (Win32 EnumDisplayMonitors API)
 ├── toast.rs      # Native OS desktop toast notification dispatch (notify-rust)
-└── app.rs        # GUI state model (MyMsgApp) & rendering loop (eframe::App, timeout watcher)
+├── app.rs        # GUI state model (MyMsgApp) & rendering loop (eframe::App, timeout watcher, action buttons)
+├── log.rs        # Event logging module (append_log, lifecycle & user action tracing)
+├── session.rs    # Interactive session & Session 0 detection module (is_interactive_session)
+└── sound.rs      # System notification chime / beep playback module (play_notification_sound)
 ```
 
 ---
 
 ## 3. Core Structs & Data Types
 
-### 3.1 `CliArgs` (`src/cli.rs`)
+### 3.1 `CliArgs` (`src/cli/args.rs`)
 Derived via `clap::Parser` to map command-line flags safely into typed fields:
 
 ```rust
@@ -66,7 +74,21 @@ pub struct CliArgs {
     pub monitor: String,
     pub timeout: u64,
     pub toast: bool,
+    pub interval: Option<String>,
+    pub at: Vec<String>,
+    pub count: u64,
+    pub immediate: bool,
+    pub show_progress: bool,
+    pub log: Option<std::path::PathBuf>,
+    pub copy: bool,
+    pub action: Option<String>,
+    pub sound: bool,
 }
+```
+
+### 3.2 `MyMsgApp` (`src/app.rs`)
+Holds the active runtime GUI state:
+
 ```rust
 pub struct MyMsgApp {
     pub message: String,
@@ -78,6 +100,12 @@ pub struct MyMsgApp {
     pub font_size: f32,
     pub blink: bool,
     pub timeout_secs: u64,
+    pub show_progress: bool,
+    pub log_path: Option<PathBuf>,
+    pub copy_enabled: bool,
+    pub copied_feedback_until: Option<Instant>,
+    pub action_cmd: Option<String>,
+    pub action_feedback: Option<(Instant, String, bool)>,
     pub start_time: Instant,
 }
 ```

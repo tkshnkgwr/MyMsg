@@ -113,6 +113,15 @@ MyMsg "Error encountered! Check details." --action "notepad.exe C:\Logs\app.log"
 MyMsg "Backup done" --timeout 10 --log C:\Logs\history.log -i ok
 ```
 
+### System Notification Sound (Chime / Beep)
+```powershell
+# Play warning sound on popup
+MyMsg "Critical: Connection lost!" -i warn --sound
+
+# Play chime sound on toast dispatch
+MyMsg "Job completed" --toast -i ok --beep
+```
+
 ### OS Native Toast Notification Mode (No GUI Window)
 ```powershell
 MyMsg "Background job completed" --toast -i ok
@@ -163,9 +172,9 @@ if %ERRORLEVEL% LEQ 1 (
 When triggering `MyMsg` periodically via **Windows Task Scheduler**, `cron`, or background daemons, using **`--timeout` or `--toast` (`-T`) is strongly recommended**.
 
 #### Key Windows Task Scheduler Configuration Guidelines
-1. **Security Options**:
-   - Ensure **"Run only when user is logged on"** is selected.
-   - *Note*: If configured with "Run whether user is logged on or not" or under the `SYSTEM` account, Windows Session 0 Isolation will execute the process in a non-interactive background session, preventing the popup window from being visible on your desktop.
+1. **Security Options & Session 0 Auto-Detection**:
+   - To show interactive GUI popups, select **"Run only when user is logged on"**.
+   - *Note*: If launched under "Run whether user is logged on or not" or under the `SYSTEM` account (Session 0), `MyMsg` automatically detects the non-interactive session, emits a warning, and gracefully falls back to OS desktop toast notification mode (`--toast`).
 2. **Always Specify `--timeout <seconds>` (Strongly Recommended)**:
    - If an alert pops up while you are away from the computer and no timeout is set, the process will remain open indefinitely.
    - This can cause Task Scheduler's "Do not start a new instance" rule to **block or skip subsequent scheduled runs**.

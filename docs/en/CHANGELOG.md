@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **System Notification Sound (`--sound` / `--beep`)**:
+  - Plays the OS system chime or beep sound (`MessageBeep` on Windows) on popup display and toast dispatch, dynamically mapping sound tone to `--icon`.
+- **Headless / Non-Interactive (Session 0) Auto-Detection & Fallback**:
+  - Automatically detects non-interactive sessions (Windows services, background schedulers without desktop), issues a warning to stderr, and safely falls back to OS desktop toast notification mode (`--toast`).
+
 ## [1.1.0] - 2026-09-07
 
 ### Added

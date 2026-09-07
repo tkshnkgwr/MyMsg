@@ -30,24 +30,32 @@ graph TD
 
 ## 2. ソースコードモジュール構成
 
-ソースコードは責務ごとに以下の7モジュールに分割されています。
+ソースコードは責務ごとに以下のサブモジュール構成に整理されています。
 
 ```
 src/
-├── main.rs       # エントリーポイント（main関数、遅延処理、Viewport初期化、トースト分岐）
-├── cli.rs        # CLI引数定義（CliArgs, IconType, ThemeMode, MonitorTarget, 遅延/寸法計算）
+├── main.rs       # エントリーポイント（main関数、セッション判定、遅延処理、定期実行、トースト分岐）
+├── cli/          # CLI 引数パース・型・計算モジュール
+│   ├── mod.rs    # サブモジュール宣言 & 後方互換性維持のための pub use 再エクスポート
+│   ├── args.rs   # CliArgs 構造体定義および clap 属性・ヘルプ文章
+│   ├── types.rs  # IconType, ThemeMode, MonitorTarget 列挙型およびパーサー
+│   ├── time.rs   # 時間単位・遅延・HH:MMスケジュール計算関数群
+│   └── layout.rs # ウィンドウ寸法・フォントサイズ計算、メッセージ改行解決
 ├── color.rs      # カラーパーサー（parse_color, ThemePalette, テーマ解決）
 ├── font.rs       # 日本語・システムフォント自動検出・登録（setup_japanese_fonts）
 ├── monitor.rs    # マルチモニター・指定画面中央座標検出（Windows API / EnumDisplayMonitors）
 ├── toast.rs      # OSネイティブトースト通知送信（notify-rust）
-└── app.rs        # GUI状態（MyMsgApp）& レンダリングループ（Galley上下中央配置、タイマー監視）
+├── app.rs        # GUI状態（MyMsgApp）& レンダリングループ（Galley上下中央配置、タイマー監視、操作ボタン）
+├── log.rs        # ログファイル追記モジュール（append_log, 各種イベント記録）
+├── session.rs    # 対話型セッション・Session 0 検出モジュール（is_interactive_session）
+└── sound.rs      # システム通知音・ビープ音再生モジュール（play_notification_sound）
 ```
 
 ---
 
 ## 3. 主要構造体定義
 
-### 3.1 `CliArgs` (`src/cli.rs`)
+### 3.1 `CliArgs` (`src/cli/args.rs`)
 `clap::Parser` によるマクロ導出で、CLI からの入力文字列を安全に型付けされた構造体に変換します。
 
 ```rust
@@ -66,6 +74,15 @@ pub struct CliArgs {
     pub monitor: String,
     pub timeout: u64,
     pub toast: bool,
+    pub interval: Option<String>,
+    pub at: Vec<String>,
+    pub count: u64,
+    pub immediate: bool,
+    pub show_progress: bool,
+    pub log: Option<std::path::PathBuf>,
+    pub copy: bool,
+    pub action: Option<String>,
+    pub sound: bool,
 }
 ```
 
@@ -83,6 +100,12 @@ pub struct MyMsgApp {
     pub font_size: f32,
     pub blink: bool,
     pub timeout_secs: u64,
+    pub show_progress: bool,
+    pub log_path: Option<PathBuf>,
+    pub copy_enabled: bool,
+    pub copied_feedback_until: Option<Instant>,
+    pub action_cmd: Option<String>,
+    pub action_feedback: Option<(Instant, String, bool)>,
     pub start_time: Instant,
 }
 ```

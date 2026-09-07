@@ -26,6 +26,8 @@ pub mod color;
 pub mod font;
 pub mod log;
 pub mod monitor;
+pub mod session;
+pub mod sound;
 pub mod toast;
 
 use app::MyMsgApp;
@@ -41,7 +43,25 @@ use std::thread;
 use std::time::Duration;
 
 fn main() -> eframe::Result<()> {
-    let args = CliArgs::parse();
+    let mut args = CliArgs::parse();
+
+    // ヘッドレス / 非対話セッション (Session 0) の検出と自動フォールバック
+    if !args.toast && !session::is_interactive_session() {
+        eprintln!(
+            "MyMsg [警告]: 非対話セッション（Session 0 / ヘッドレス環境）を検出しました。\n\
+             GUI ウィンドウを表示できないため、OSトースト通知モードへ自動フォールバックします。"
+        );
+        if let Some(ref path) = args.log {
+            log::append_log(
+                path,
+                log::LogEvent::Action {
+                    cmd: "Session0Detection: Fallback to Toast",
+                    success: true,
+                },
+            );
+        }
+        args.toast = true;
+    }
 
     let delay_secs = parse_delay_to_seconds(&args.delay);
     let interval_secs = args.interval.as_deref().and_then(parse_interval_to_seconds);

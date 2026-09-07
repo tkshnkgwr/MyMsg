@@ -53,6 +53,7 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--log`             | -     | `PathBuf`    | None                | Append lifecycle history and user actions to a log file.                  |
 | `--copy`            | -     | `bool`       | `false`             | Render a "📋 コピー" button to copy message to clipboard.                  |
 | `--action`          | -     | `String`     | None                | Render a "⚡ 実行" button to execute an external command.                 |
+| `--sound`           | -     | `bool`       | `false`             | Play system notification sound (chime/beep). Alias: `--beep`.             |
 | `--help`            | `-h`  | -            | -                   | Print help information and exit.                                          |
 | `--version`         | `-V`  | -            | -                   | Print version information and exit.                                       |
 
@@ -232,11 +233,23 @@ When `--timeout <seconds>` is specified:
 When `--toast` is specified:
 - Bypasses GUI window creation and sends an OS-native desktop toast notification (Windows Action Center / macOS / Linux) directly.
 - Exits immediately after dispatch with exit code `0`.
-- Supports `--icon` symbols and `--delay` timers.
+- Supports `--icon` symbols, `--sound` chime playback, and `--delay` timers.
 
 ---
 
-## 15. User Interaction & Dismissal Conditions
+## 15. System Notification Sound (`--sound` / `--beep`)
+
+When `--sound` (or alias `--beep`) is enabled:
+- Plays the OS system chime or beep sound (`MessageBeep` on Windows, terminal bell on Linux/macOS) upon window creation or toast dispatch.
+- Sound tone maps dynamically to the `--icon` argument:
+  - `info`: Asterisk chime (`MB_ICONASTERISK`)
+  - `warn`: Warning exclamation tone (`MB_ICONEXCLAMATION`)
+  - `error`: Error stop hand sound (`MB_ICONHAND`)
+  - `ok`: Default system sound (`MB_OK`)
+
+---
+
+## 16. User Interaction & Dismissal Conditions
 
 | Action / Trigger | Behavior | Exit Code |
 | :--- | :--- | :---: |
@@ -249,16 +262,18 @@ When `--toast` is specified:
 
 ---
 
-## 16. Constraints & Scheduled Background Execution
+## 17. Constraints & Scheduled Background Execution
 
 1. **Maximum Delay Duration**:
    - The `--delay` wait time is clamped to a maximum of 86,400 seconds (24 hours).
 2. **Concurrent Invocations**:
    - Designed as a single-instance popup per process invocation. Multiple concurrent invocations spawn separate isolated OS windows.
-3. **Windows Session 0 Isolation & Task Scheduler**:
-   - When launched under Windows services or Task Scheduler configured with "Run whether user is logged on or not" (Session 0), the GUI window will not be rendered onto the active desktop due to Windows security isolation.
-   - Always configure tasks to "Run only when user is logged on" to ensure interactive desktop popups.
+3. **Windows Session 0 Automatic Detection & Fallback**:
+   - When launched in non-interactive environments (Windows services, Task Scheduler with "Run whether user is logged on or not", or headless sessions without desktop access), `MyMsg` automatically detects the non-visible window station (`WSF_VISIBLE` flag missing).
+   - Instead of silently failing or blocking, it emits a warning to `stderr` and automatically falls back to OS toast notifications (`--toast`) and logs the fallback event (`[SESSION0] Fallback to Toast`).
+   - For direct GUI popups via Task Scheduler, configure the task with "Run only when user is logged on".
 4. **Auto-Dismissal for Periodic Tasks**:
    - When executed via schedulers or automated background jobs, specifying `--timeout <seconds>` or using `--toast` (`-T`) is strongly recommended to prevent orphaned processes and avoid blocking future scheduled triggers.
+
 
 
