@@ -7,7 +7,9 @@ use crate::cli::{
     calculate_window_dimensions, parse_icon, parse_theme, CliArgs, IconType, ThemeMode,
 };
 use crate::color::resolve_theme_palette;
+use crate::log::{append_log, LogEvent};
 use eframe::egui::{self, Color32, FontFamily, FontId, RichText, ViewportCommand};
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 /// MyMsg の GUI アプリケーション状態
@@ -30,13 +32,41 @@ pub struct MyMsgApp {
     pub blink: bool,
     /// 自動消去タイマー（秒単位、0は無効）
     pub timeout_secs: u64,
+    /// プログレスバー表示フラグ
+    pub show_progress: bool,
+    /// ログファイルパス
+    pub log_path: Option<PathBuf>,
+    /// クリップボードコピーボタン有効フラグ
+    pub copy_enabled: bool,
+    /// コピー完了通知タイムスタンプ
+    pub copied_feedback_until: Option<Instant>,
+    /// 外部コマンド実行アクション
+    pub action_cmd: Option<String>,
+    /// アクション実行結果表示タイムスタンプおよびメッセージ
+    pub action_feedback_until: Option<(Instant, bool)>,
     /// アプリケーション起動時刻（点滅周期・タイムアウト計算用）
     pub start_time: Instant,
+    /// 定期実行インターバル秒数
+    pub interval_secs: Option<u64>,
+    /// 複数時刻スケジュールリスト
+    pub schedule_times: Vec<chrono::NaiveTime>,
+    /// 最大通知回数（0で無制限）
+    pub max_count: u64,
+    /// 現在の通知回数（1始まり）
+    pub current_count: u64,
+    /// 完全終了フラグ（Shift+Esc等でセット）
+    pub should_exit_all: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// クローズ処理済みフラグ（二重ログ防止）
+    pub is_closing: bool,
 }
 
 impl MyMsgApp {
     /// コマンドライン引数からアプリケーション状態を初期化します。
-    pub fn new(args: CliArgs) -> Self {
+    pub fn new(
+        args: CliArgs,
+        current_count: u64,
+        should_exit_all: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    ) -> Self {
         let message = crate::cli::resolve_message(args.message_arg, args.message_opt);
         let (font_size, _) = calculate_window_dimensions(&args.size, args.font_size);
 
@@ -49,6 +79,22 @@ impl MyMsgApp {
 
         let icon = args.icon.as_deref().and_then(parse_icon);
         let theme_mode = parse_theme(&args.theme);
+        let interval_secs = args
+            .interval
+            .as_deref()
+            .and_then(crate::cli::parse_interval_to_seconds);
+        let schedule_times = crate::cli::parse_at_times(&args.at);
+
+        if let Some(ref path) = args.log {
+            append_log(
+                path,
+                LogEvent::Open {
+                    message: &message,
+                    count: current_count,
+                    timeout_secs: args.timeout,
+                },
+            );
+        }
 
         Self {
             message,
@@ -60,29 +106,102 @@ impl MyMsgApp {
             font_size,
             blink: args.blink,
             timeout_secs: args.timeout,
+            show_progress: args.show_progress,
+            log_path: args.log,
+            copy_enabled: args.copy,
+            copied_feedback_until: None,
+            action_cmd: args.action,
+            action_feedback_until: None,
             start_time: Instant::now(),
+            interval_secs,
+            schedule_times,
+            max_count: args.count,
+            current_count,
+            should_exit_all,
+            is_closing: false,
+        }
+    }
+
+    /// 次のスケジュール（定期実行・予定時刻）が存在するか判定します。
+    pub fn has_next_schedule(&self) -> bool {
+        if self.max_count > 0 && self.current_count >= self.max_count {
+            return false;
+        }
+        self.interval_secs.is_some() || !self.schedule_times.is_empty()
+    }
+
+    /// クローズ時のログ記録
+    fn record_close(&mut self, reason: &str) {
+        if self.is_closing {
+            return;
+        }
+        self.is_closing = true;
+        if let Some(ref path) = self.log_path {
+            append_log(
+                path,
+                LogEvent::Close {
+                    reason,
+                    elapsed_secs: self.start_time.elapsed().as_secs_f32(),
+                },
+            );
         }
     }
 }
 
 impl eframe::App for MyMsgApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // キーボード即時終了判定 (Esc または Enter)
-        if ctx.input(|i| i.key_pressed(egui::Key::Escape) || i.key_pressed(egui::Key::Enter)) {
+        // Shift + Esc / Shift + Enter で定期実行を完全に終了
+        let is_shift = ctx.input(|i| i.modifiers.shift);
+        if is_shift
+            && ctx.input(|i| i.key_pressed(egui::Key::Escape) || i.key_pressed(egui::Key::Enter))
+        {
+            self.should_exit_all
+                .store(true, std::sync::atomic::Ordering::SeqCst);
+            self.record_close("Shift+(Escape/Enter)");
             ctx.send_viewport_cmd(ViewportCommand::Close);
             return;
         }
 
-        // 自動消去タイマー判定（指定秒数経過で自動終了）
+        // Esc または Enter で今回の通知を閉じる
+        if ctx.input(|i| i.key_pressed(egui::Key::Escape) || i.key_pressed(egui::Key::Enter)) {
+            self.record_close("Escape/Enter");
+            ctx.send_viewport_cmd(ViewportCommand::Close);
+            return;
+        }
+
+        // 自動消去タイマー判定（指定秒数経過で今回通知を自動クローズ）
+        let elapsed = self.start_time.elapsed();
         if self.timeout_secs > 0 {
-            let elapsed = self.start_time.elapsed();
             if elapsed >= Duration::from_secs(self.timeout_secs) {
+                self.record_close("Timeout");
                 ctx.send_viewport_cmd(ViewportCommand::Close);
                 return;
             }
-            // タイムアウト検知のための再描画要求
+            // プログレスバー表示時は滑らかなアニメーションのために短い再描画間隔を設定
             let remaining = Duration::from_secs(self.timeout_secs).saturating_sub(elapsed);
-            ctx.request_repaint_after(remaining.min(Duration::from_millis(200)));
+            let redraw_interval = if self.show_progress {
+                Duration::from_millis(50)
+            } else {
+                remaining.min(Duration::from_millis(200))
+            };
+            ctx.request_repaint_after(redraw_interval);
+        }
+
+        // コピー・アクションフィードバック中の定期再描画
+        let now = Instant::now();
+        if let Some(until) = self.copied_feedback_until {
+            if now < until {
+                ctx.request_repaint_after(Duration::from_millis(100));
+            } else {
+                self.copied_feedback_until = None;
+            }
+        }
+        if let Some((until, _)) = self.action_feedback_until {
+            if now < until {
+                ctx.request_repaint_after(Duration::from_millis(100));
+            } else {
+                self.action_feedback_until = None;
+            }
         }
 
         // システムテーマの判定 (ダークモード判定)
@@ -99,8 +218,8 @@ impl eframe::App for MyMsgApp {
         // 点滅エフェクト計算 (0.5秒周期)
         let mut display_color = palette.text_color;
         if self.blink {
-            let elapsed = self.start_time.elapsed().as_secs_f32();
-            let phase = (elapsed % 1.0_f32) < 0.5_f32;
+            let elapsed_sec = elapsed.as_secs_f32();
+            let phase = (elapsed_sec % 1.0_f32) < 0.5_f32;
             if !phase {
                 display_color = Color32::from_rgba_unmultiplied(
                     palette.text_color.r(),
@@ -120,20 +239,158 @@ impl eframe::App for MyMsgApp {
                     .inner_margin(egui::Margin::symmetric(16.0_f32, 8.0_f32)),
             )
             .show(ctx, |ui| {
-                ui.vertical_centered(|ui| {
-                    let close_btn = ui.add(
-                        egui::Button::new(
-                            RichText::new("✕ 閉じる (Esc / Enter)")
-                                .size(12.0_f32)
-                                .color(palette.button_text),
-                        )
-                        .fill(palette.button_bg)
-                        .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                        .rounding(4.0_f32),
-                    );
+                // タイムアウト・プログレス表示 (--show-progress)
+                if self.timeout_secs > 0 && self.show_progress {
+                    let total_secs = self.timeout_secs as f32;
+                    let remaining_secs = (total_secs - elapsed.as_secs_f32()).max(0.0_f32);
+                    let progress_ratio = (remaining_secs / total_secs).clamp(0.0_f32, 1.0_f32);
 
-                    if close_btn.clicked() {
-                        ctx.send_viewport_cmd(ViewportCommand::Close);
+                    let progress_bar = egui::ProgressBar::new(progress_ratio)
+                        .text(format!("{:.1}s / {}s", remaining_secs, self.timeout_secs))
+                        .animate(false);
+
+                    ui.add(progress_bar);
+                    ui.add_space(4.0_f32);
+                }
+
+                // ボタングループ（中央配置）
+                ui.vertical_centered(|ui| {
+                    ui.horizontal(|ui| {
+                        // 横並びセンタリング用のスペーサー計算
+                        ui.spacing_mut().item_spacing.x = 6.0_f32;
+
+                        // クリップボードコピーボタン (--copy)
+                        if self.copy_enabled {
+                            let is_copied = self
+                                .copied_feedback_until
+                                .map(|u| Instant::now() < u)
+                                .unwrap_or(false);
+                            let copy_label = if is_copied {
+                                "✓ コピー完了"
+                            } else {
+                                "📋 コピー"
+                            };
+
+                            let copy_btn = ui.add(
+                                egui::Button::new(
+                                    RichText::new(copy_label)
+                                        .size(11.0_f32)
+                                        .color(palette.button_text),
+                                )
+                                .fill(palette.button_bg)
+                                .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                                .rounding(4.0_f32),
+                            );
+
+                            if copy_btn.clicked() {
+                                ctx.output_mut(|o| o.copied_text = self.message.clone());
+                                self.copied_feedback_until =
+                                    Some(Instant::now() + Duration::from_secs(2));
+                                if let Some(ref path) = self.log_path {
+                                    append_log(path, LogEvent::Copy);
+                                }
+                            }
+                        }
+
+                        // アクションボタン (--action <cmd>)
+                        if let Some(ref cmd_str) = self.action_cmd {
+                            let action_label =
+                                if let Some((u, success)) = self.action_feedback_until {
+                                    if Instant::now() < u {
+                                        if success {
+                                            "✓ 実行完了"
+                                        } else {
+                                            "✖ 実行失敗"
+                                        }
+                                    } else {
+                                        "⚡ 実行"
+                                    }
+                                } else {
+                                    "⚡ 実行"
+                                };
+
+                            let action_btn = ui.add(
+                                egui::Button::new(
+                                    RichText::new(action_label)
+                                        .size(11.0_f32)
+                                        .color(palette.button_text),
+                                )
+                                .fill(palette.button_bg)
+                                .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                                .rounding(4.0_f32),
+                            );
+
+                            if action_btn.clicked() {
+                                let target_cmd = cmd_str.clone();
+                                let log_path_clone = self.log_path.clone();
+
+                                // Windows では cmd /C、その他では sh -c で実行
+                                #[cfg(windows)]
+                                let mut cmd = std::process::Command::new("cmd");
+                                #[cfg(windows)]
+                                cmd.args(["/C", &target_cmd]);
+
+                                #[cfg(not(windows))]
+                                let mut cmd = std::process::Command::new("sh");
+                                #[cfg(not(windows))]
+                                cmd.args(["-c", &target_cmd]);
+
+                                let spawn_res = cmd.spawn();
+                                let is_ok = spawn_res.is_ok();
+                                self.action_feedback_until =
+                                    Some((Instant::now() + Duration::from_secs(2), is_ok));
+
+                                if let Some(ref path) = log_path_clone {
+                                    append_log(
+                                        path,
+                                        LogEvent::Action {
+                                            cmd: &target_cmd,
+                                            success: is_ok,
+                                        },
+                                    );
+                                }
+                            }
+                        }
+
+                        // 閉じるボタン
+                        let has_next = self.has_next_schedule();
+                        let btn_label = if has_next {
+                            if self.max_count > 0 {
+                                format!(
+                                    "✕ 今回閉じる ({}/{}回) [Esc]",
+                                    self.current_count, self.max_count
+                                )
+                            } else {
+                                format!("✕ 今回閉じる ({}回目) [Esc]", self.current_count)
+                            }
+                        } else {
+                            "✕ 閉じる (Esc / Enter)".to_string()
+                        };
+
+                        let close_btn = ui.add(
+                            egui::Button::new(
+                                RichText::new(btn_label)
+                                    .size(11.0_f32)
+                                    .color(palette.button_text),
+                            )
+                            .fill(palette.button_bg)
+                            .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                            .rounding(4.0_f32),
+                        );
+
+                        if close_btn.clicked() {
+                            self.record_close("CloseButton");
+                            ctx.send_viewport_cmd(ViewportCommand::Close);
+                        }
+                    });
+
+                    if self.has_next_schedule() {
+                        ui.add_space(2.0_f32);
+                        ui.label(
+                            RichText::new("完全終了: Shift+Esc")
+                                .size(10.0_f32)
+                                .color(Color32::from_gray(140)),
+                        );
                     }
                 });
             });

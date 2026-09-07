@@ -45,7 +45,7 @@ test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 | :--- | :--- | :--- | :---: |
 | **詳細ヘルプ出力** | `MyMsg.exe --help` | `-d` の時刻・単位例を含む全オプション解説が出力される | PASS |
 | **短縮ヘルプ出力** | `MyMsg.exe -h` | コンパクトな概要ヘルプが出力される | PASS |
-| **バージョン出力** | `MyMsg.exe --version` | `mymsg 0.1.0` がコンソールに出力される | PASS |
+| **バージョン出力** | `MyMsg.exe --version` | `mymsg 1.0.0` がコンソールに出力される | PASS |
 | **日本語フォント描画** | `MyMsg.exe "日本語通知テスト"` | 文字化けせず游ゴシック/メイリオで鮮明に表示 | PASS |
 | **キーボード即時終了** | `Esc` / `Enter` 押下 | 0ミリ秒遅延で即時プロセス終了（Exit Code 0） | PASS |
 | **自動消去タイマー** | `MyMsg.exe "3秒消去" --timeout 3` | 3秒経過後に自動でウィンドウが閉じて終了 | PASS |

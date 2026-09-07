@@ -30,23 +30,31 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 
 ### 2.2 Options & Flags
 
-| Long Flag | Short | Value Type | Default Value | Description |
-| :--- | :---: | :---: | :---: | :--- |
-| `--message` | `-m` | `String` | None | Message string to display. |
-| `--size` | `-s` | `String` | `"medium"` | Window size preset (`small`, `medium`, `large` or `s`, `l`). |
-| `--font-size`| - | `f32` | None | Message font size in points. Overrides the preset default font size. |
-| `--color` | `-c` | `String` | Default theme color | Text color. Supports named colors, 1-char shorthands, typos, and HEX codes. |
-| `--bg-color` | - | `String` | Default theme color | Window background color. |
-| `--blink` | `-b` | `bool` | `false` | Enables message text blinking animation (~0.5s cycle). |
-| `--font` | `-f` | `String` | `"default"`| Font family (`default`/`sans`, `mono`/`2`/`monospace`, `serif`/`3`, `impact`). |
-| `--icon` | `-i` | `String` | None | Icon symbol type (`info`, `warn`, `error`, `ok`). |
-| `--theme` | `-t` | `String` | `"system"` | Theme preset (`system`, `dark`, `light`). |
-| `--delay` | `-d` | `String` | `"0"` | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h). |
-| `--monitor`| - | `String` | `"cursor"` | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...). |
-| `--timeout`| - | `u64` | `0` | Auto-dismiss timer in seconds (0 to disable). |
-| `--toast` | `-T` | `bool` | `false` | OS native toast notification mode (no GUI window, immediate exit). |
-| `--help` | `-h` | - | - | Print help information and exit. |
-| `--version` | `-V` | - | - | Print version information and exit. |
+| Long Flag           | Short | Value Type   | Default Value       | Description                                                               |
+| :------------------ | :---: | :----------- | :-----------------: | :------------------------------------------------------------------------ |
+| `--message`         | `-m`  | `String`     | None                | Message string to display.                                                |
+| `--size`            | `-s`  | `String`     | `"medium"`          | Window size preset (`small`, `medium`, `large` or `s`, `l`).              |
+| `--font-size`       | -     | `f32`        | None                | Message font size in points. Overrides the preset default font size.      |
+| `--color`           | `-c`  | `String`     | Default theme color | Text color. Supports named colors, 1-char shorthands, typos, and HEX codes.|
+| `--bg-color`        | -     | `String`     | Default theme color | Window background color.                                                  |
+| `--blink`           | `-b`  | `bool`       | `false`             | Enables message text blinking animation (~0.5s cycle).                    |
+| `--font`            | `-f`  | `String`     | `"default"`         | Font family (`default`/`sans`, `mono`/`2`/`monospace`, `serif`/`3`, etc.)|
+| `--icon`            | `-i`  | `String`     | None                | Icon symbol type (`info`, `warn`, `error`, `ok`).                         |
+| `--theme`           | `-t`  | `String`     | `"system"`          | Theme preset (`system`, `dark`, `light`).                                 |
+| `--delay`           | `-d`  | `String`     | `"0"`               | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h).            |
+| `--monitor`         | -     | `String`     | `"cursor"`          | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...).                    |
+| `--timeout`         | -     | `u64`        | `0`                 | Auto-dismiss timer in seconds (0 to disable).                             |
+| `--toast`           | `-T`  | `bool`       | `false`             | OS native toast notification mode (no GUI window, immediate exit).        |
+| `--interval`        | -     | `String`     | None                | Repeat interval (`30m`, `1h`, `300`). Alias: `--every`.                   |
+| `--at`              | -     | `Vec<String>`| None                | Scheduled times of day (`09:00,12:00,15:00`). Alias: `--schedule`.        |
+| `--count`           | -     | `u64`        | `0`                 | Maximum notifications (0 for unlimited loop). Alias: `--times`.           |
+| `--immediate`       | -     | `bool`       | `false`             | Display 1st notification immediately without initial interval wait.       |
+| `--show-progress`   | -     | `bool`       | `false`             | Render countdown progress bar during timeout. Alias: `--progress`.        |
+| `--log`             | -     | `PathBuf`    | None                | Append lifecycle history and user actions to a log file.                  |
+| `--copy`            | -     | `bool`       | `false`             | Render a "📋 コピー" button to copy message to clipboard.                  |
+| `--action`          | -     | `String`     | None                | Render a "⚡ 実行" button to execute an external command.                 |
+| `--help`            | `-h`  | -            | -                   | Print help information and exit.                                          |
+| `--version`         | `-V`  | -            | -                   | Print version information and exit.                                       |
 
 ---
 

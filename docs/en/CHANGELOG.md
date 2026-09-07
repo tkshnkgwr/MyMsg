@@ -9,12 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Interval & Scheduled Notifications (`--interval`, `--at`, `--count`, `--immediate`)**:
+  - Repeat notification cycle at specified intervals or at multiple designated times of day.
+- **Timeout Progress Bar (`--show-progress`)**:
+  - Render an animated visual countdown progress bar in the bottom panel when `--timeout` is set.
+- **Clipboard Copy & Command Execution Buttons (`--copy`, `--action <cmd>`)**:
+  - One-click copy with visual feedback and background process execution.
+- **File Logging (`--log <file>`)**:
+  - Automatically append popup open/close lifecycle, count, timeout, and action history.
+
 ### Changed & Improved
+- **CLI Help Formatting**:
+  - Replaced `※` bullet characters with `・` in CLI help text to avoid terminal/IDE squishing.
 - **Documentation Overhaul**:
-  - Added Windows Task Scheduler and cron automation integration guide (`USER_GUIDE.md`, `README.md`, `README_JA.md`).
-  - Added Windows Session 0 Isolation security constraints and `--timeout` best practices (`SPECIFICATION.md`).
-  - Added upcoming roadmap items for instance replacement (`--single-instance`), headless session detection, and timeout progress bars (`TODO.md`).
-  - Updated resource benchmark footprints in `FOOTPRINTS.md` (measured release binary size **~5.2 MB**, added OS toast mode latency/RAM metrics).
+  - Synced `README.md`, `README_JA.md`, `SPECIFICATION.md`, `USER_GUIDE.md`, and `TODO.md` across both English and Japanese.
 
 
 ## [1.0.0] - 2026-08-31

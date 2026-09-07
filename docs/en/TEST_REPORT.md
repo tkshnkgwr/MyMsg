@@ -45,7 +45,7 @@ test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 | :--- | :--- | :--- | :---: |
 | **Detailed Help Display** | `MyMsg.exe --help` | Console displays formatted options with time/unit examples | PASS |
 | **Short Help Display** | `MyMsg.exe -h` | Outputs concise usage summary | PASS |
-| **Version Display** | `MyMsg.exe --version` | Outputs `mymsg 0.1.0` | PASS |
+| **Version Display** | `MyMsg.exe --version` | Outputs `mymsg 1.0.0` | PASS |
 | **CJK Font Rendering** | `MyMsg.exe "日本語通知テスト"` | Clean typography without tofu/mojibake | PASS |
 | **Keyboard Dismissal** | `Esc` / `Enter` keys | 0ms lag immediate process exit (code 0) | PASS |
 | **Auto-Dismissal Timer** | `MyMsg.exe "3s auto" --timeout 3` | Automatically closes window after 3 seconds | PASS |

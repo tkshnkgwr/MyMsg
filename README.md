@@ -37,6 +37,10 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
   - Typo tolerance (`bule` -> Blue)
   - Hex codes (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, optional leading `#`)
 - ⏱️ **Zero-Overhead Timer / Delay & Time-of-Day Mode (`--delay` / `-d`)**: Supports seconds (`60`), unit duration (`10m`, `1h`), or exact time of day (`12:00`) before displaying notification (zero GUI resource consumption during sleep mode; safety-capped at 24h / 86400s).
+- 🔄 **Interval & Scheduled Notifications (`--interval` / `--at`)**: Recurring notifications at fixed intervals (e.g., `30m`) or multiple designated times of day (`09:00,12:00,15:00`) with `--count` and `--immediate` flags.
+- ⏳ **Timeout Progress Bar (`--show-progress`)**: Smooth countdown progress bar displayed in the bottom panel when `--timeout` is set.
+- 📋 **Clipboard Copy & Command Execution (`--copy`, `--action <cmd>`)**: One-click action buttons to copy message text or trigger external commands in the background.
+- 📝 **Event Logging (`--log <file>`)**: Automatically append popup invocation timestamps, counts, dismiss reasons, and user actions to a log file.
 - 🍞 **OS Native Toast Notification Mode (`--toast` / `-T`)**: Dispatches a standard OS desktop banner notification (Action Center / Notification Center) and exits immediately without spawning a GUI window.
 - 🚨 **Blink Mode (`--blink` / `-b`)**: Pulses text opacity every ~0.5s for urgent alerts.
 - 🔤 **Automatic CJK / Japanese Font Detection**: Automatically discovers and registers OS Japanese fonts (Windows/macOS/Linux) to prevent tofu (□) or mojibake.
@@ -65,24 +69,32 @@ The compiled binary will be located at `target/release/MyMsg.exe` (or `MyMsg` on
 Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 ```
 
-| Argument / Option | Short | Default | Description |
-| :--- | :---: | :---: | :--- |
-| `[MESSAGE]` | - | None | Message string to display (Positional argument) |
-| `--message <STR>` | `-m` | None | Message string to display (Optional argument) |
-| `--size <SIZE>` | `-s` | `medium` | Window size preset (`small`: 300x150, `medium`: 450x220, `large`: 650x350) |
-| `--font-size <PT>` | - | Auto | Font size in points (overrides size preset font size) |
-| `--color <COLOR>` | `-c` | Default theme color | Text color (named, 1-char shorthand, typo-tolerant, #HEX) |
-| `--bg-color <COLOR>` | - | Default theme color | Window background color |
-| `--blink` | `-b` | `false` | Enable text blink pulsing animation |
-| `--font <FONT>` | `-f` | `default` | Font family type (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`) |
-| `--icon <ICON>` | `-i` | None | Icon symbol type (`info`, `warn`, `error`, `ok`) |
-| `--theme <THEME>` | `-t` | `system` | Theme selection (`system`, `dark`, `light`) |
-| `--delay <SPEC>` | `-d` | `0` | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h) |
-| `--monitor <TARGET>` | - | `cursor` | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...) |
-| `--timeout <SEC>` | - | `0` | Auto-dismiss timer in seconds (0 to disable) |
-| `--toast` | `-T` | `false` | OS native toast notification mode (no GUI window, immediate exit) |
-| `--help` | `-h` | - | Display help message and exit |
-| `--version` | `-V` | - | Display version information and exit |
+| Argument / Option   | Short | Default             | Description                                                               |
+| :------------------ | :---: | :-----------------: | :------------------------------------------------------------------------ |
+| `[MESSAGE]`         | -     | None                | Message string to display (Positional argument)                           |
+| `--message <STR>`   | `-m`  | None                | Message string to display (Optional argument)                             |
+| `--size <SIZE>`     | `-s`  | `medium`            | Window size preset (`small`: 300x150, `medium`: 450x220, `large`: 650x350)|
+| `--font-size <PT>`  | -     | Auto                | Font size in points (overrides size preset font size)                     |
+| `--color <COLOR>`   | `-c`  | Default theme color | Text color (named, 1-char shorthand, typo-tolerant, #HEX)                 |
+| `--bg-color <COLOR>`| -     | Default theme color | Window background color                                                   |
+| `--blink`           | `-b`  | `false`             | Enable text blink pulsing animation                                       |
+| `--font <FONT>`     | `-f`  | `default`           | Font family type (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`)   |
+| `--icon <ICON>`     | `-i`  | None                | Icon symbol type (`info`, `warn`, `error`, `ok`)                          |
+| `--theme <THEME>`   | `-t`  | `system`            | Theme selection (`system`, `dark`, `light`)                               |
+| `--delay <SPEC>`    | `-d`  | `0`                 | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h)              |
+| `--monitor <TARGET>`| -     | `cursor`            | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...)                     |
+| `--timeout <SEC>`   | -     | `0`                 | Auto-dismiss timer in seconds (0 to disable)                              |
+| `--toast`           | `-T`  | `false`             | OS native toast notification mode (no GUI window, immediate exit)         |
+| `--interval <INT>`  | -     | None                | Periodic repeat interval (`30m`, `1h`, `300`). Alias: `--every`          |
+| `--at <TIMES>`      | -     | None                | Scheduled times of day (`09:00,12:00,15:00`). Alias: `--schedule`         |
+| `--count <NUM>`     | -     | `0`                 | Maximum notifications (0 for unlimited loop). Alias: `--times`            |
+| `--immediate`       | -     | `false`             | Trigger 1st notification immediately without initial wait                 |
+| `--show-progress`   | -     | `false`             | Show animated countdown progress bar during timeout. Alias: `--progress`  |
+| `--log <FILE>`      | -     | None                | Log file path to append popup lifecycle and action history                |
+| `--copy`            | -     | `false`             | Display a "📋 コピー" (Copy) button to copy message to clipboard          |
+| `--action <CMD>`    | -     | None                | Display a "⚡ 実行" (Execute) button to trigger external commands         |
+| `--help`            | `-h`  | -                   | Display help message and exit                                             |
+| `--version`         | `-V`  | -                   | Display version information and exit                                      |
 
 > [!NOTE]
 > Message string resolution follows strict priority: Positional argument (`MESSAGE`) > Option flag (`-m / --message`) > Default fallback (`"MyMsg: 通知が届きました"`).
@@ -138,8 +150,29 @@ npm run build; MyMsg "npm build complete!" -c cyan -i ok
 # Auto-dismisses in 15 seconds so unattended runs never block
 MyMsg "Daily backup completed" -i ok -c green --timeout 15
 
+# Auto-dismisses with animated countdown progress bar
+MyMsg "Processing finished" --timeout 5 --show-progress -i ok
+
 # Desktop toast notification mode
 MyMsg "Time to stretch!" -i info --toast
+```
+
+### Interval & Scheduled Reminders
+```powershell
+# Repeat notification every 30 minutes (immediate 1st popup, max 3 times)
+MyMsg "Drink water and stay hydrated" --interval 30m --immediate --count 3 -i info
+
+# Trigger sequentially at designated times throughout the day
+MyMsg "Team Standup meeting" --at 09:30,13:00,17:00 -i warn
+```
+
+### Clipboard Copy, Custom Actions & Logging
+```powershell
+# Display clipboard copy button
+MyMsg "TOKEN=abc123xyz456" --copy -i info
+
+# One-click button to open log file, appending lifecycle history to log
+MyMsg "Build failed!" -i error --action "notepad.exe C:\Logs\build.log" --log C:\Logs\mymsg.log
 ```
 
 

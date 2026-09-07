@@ -88,9 +88,33 @@ MyMsg "定時です。業務を終了しましょう。" -d 18:00 --toast -i inf
 MyMsg "メインモニター通知" --monitor primary -i ok
 ```
 
-### Q. 5秒後に自動で閉じるようにしたい（チラ見せ通知）
+### Q. 5秒後に自動で閉じるようにしたい（チラ見せ通知 & プログレスバー）
 ```powershell
-MyMsg "処理が完了しました（5秒後に自動消去）" --timeout 5 -i ok
+# プログレスバー付きで5秒後に自動消去
+MyMsg "処理が完了しました" --timeout 5 --show-progress -i ok
+```
+
+### Q. 定期的にリマインダーを表示したい（30分ごと、または指定時刻）
+```powershell
+# 30分ごとに繰り返し通知（初回即時表示、最大3回）
+MyMsg "姿勢を正して深呼吸しましょう" --interval 30m --immediate --count 3 -i info
+
+# 1日の中の特定時刻にスケジュール通知
+MyMsg "ミーティングの時間です" --at 09:30,13:00,17:00 -i warn
+```
+
+### Q. 通知からメッセージをコピーしたり外部コマンドを実行したい
+```powershell
+# クリップボードコピーボタンを表示
+MyMsg "API_KEY_1234567890" --copy -i info
+
+# ワンクリックでログファイルを開くアクションボタンを配置
+MyMsg "エラーが発生しました。ログを確認してください。" --action "notepad.exe C:\Logs\app.log" -i error
+```
+
+### Q. ポップアップの表示履歴や操作ログを記録したい
+```powershell
+MyMsg "日次バックアップ完了" --timeout 10 --log C:\Logs\mymsg_history.log -i ok
 ```
 
 ### Q. GUIウィンドウを出さず、OS標準のトースト通知（画面右下）で通知したい

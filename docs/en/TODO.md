@@ -20,8 +20,13 @@ This document tracks completed implementation milestones and the future enhancem
 - [x] **Explicit Monitor Selection (`--monitor <cursor|primary|0|1...>`)**: Explicitly target screens by keyword (`primary`) or display index.
 - [x] **Auto-Dismiss Timer (`--timeout <seconds>`)**: Automatically close popup after a given duration without keypress.
 - [x] **OS Native Toast Notification Mode (`--toast` / `-T`)**: Dispatches desktop notifications to OS notification center without spawning a GUI window.
+- [x] **Interval / Recurring Notifications (`--interval <duration>` / `--every <duration>`)**: Repeat/cycle notifications at fixed intervals (e.g. `30m`, `1h`) with `--count` limit and `--immediate` skip.
+- [x] **Multiple Scheduled Times (`--at <HH:MM,...>` / `--schedule`)**: Specify multiple exact times of day (comma-separated or multiple flags) to trigger messages sequentially.
+- [x] **Timeout Progress & Countdown (`--show-progress`)**: Render an animated visual countdown progress bar and remaining seconds for auto-dismissing timeouts.
+- [x] **Clipboard Copy / Custom Action Buttons (`--copy`, `--action <cmd>`)**: Actionable buttons inside the popup to copy text to clipboard (with feedback) and execute external commands.
+- [x] **Logging to File (`--log <file>`)**: Append invocation timestamps, popup counts, dismiss reasons, and action execution logs to a specified file.
 - [x] **CJK / Japanese Font Detection**: OS font auto-discovery to prevent mojibake.
-- [x] **Automated Test Suite**: Unit tests covering parsing, time calculations, theme resolution, and math.
+- [x] **Automated Test Suite**: Unit tests covering parsing, time calculations, theme resolution, logging, and math.
 
 ---
 
@@ -33,13 +38,10 @@ This document tracks completed implementation milestones and the future enhancem
 - [ ] **Headless / Session 0 Detection**: Detect non-interactive sessions and log warnings or automatically fallback to OS toast/logging.
 - [ ] **Cross-Platform Multi-Monitor Support**: Active monitor detection on macOS (CoreGraphics) and Linux (X11 / Wayland).
 
-### Phase 3: Audio, Alerts & Timer Visuals
+### Phase 3: Audio & Alerts
 - [ ] **Notification Audio (`--sound` / `--beep`)**: Play optional system chime or beep on popup.
-- [ ] **Timeout Progress & Countdown (`--show-progress`)**: Render a visual countdown progress bar or remaining seconds for auto-dismissing timeouts.
 
-### Phase 4: Interaction & Utilities
-- [ ] **Clipboard Copy / Custom Action Buttons (`--copy`, `--action <cmd>`)**: Actionable buttons inside the popup to copy text or run a command.
-- [ ] **Logging to File (`--log <file>`)**: Append invocation timestamps and messages to a log file.
+### Phase 4: Interaction & Styling
 - [ ] **Window Transparency (`--transparent`)**: Experimental support for frosted glass or alpha-blended windows.
 - [ ] **Custom Emoji/Icon String**: Direct support for custom emoji symbols in icon flag.
 

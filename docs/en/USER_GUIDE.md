@@ -87,9 +87,30 @@ MyMsg "End of day reminder" -d 18:00 --toast -i info
 MyMsg "Main Screen Alert" --monitor primary -i ok
 ```
 
-### Auto-Dismissing Popup (5-Second Toast-like Popup)
+### Auto-Dismissing Popup with Countdown Progress Bar
 ```powershell
-MyMsg "Quick Status Check" --timeout 5 -i ok
+MyMsg "Quick Status Check" --timeout 5 --show-progress -i ok
+```
+
+### Recurring & Scheduled Reminders
+```powershell
+# Repeat notification every 30 minutes (immediate 1st popup, max 3 times)
+MyMsg "Posture check and hydration reminder" --interval 30m --immediate --count 3 -i info
+
+# Designated times of day
+MyMsg "Standup meeting starting" --at 09:30,13:00,17:00 -i warn
+```
+
+### Clipboard Copy, Custom Actions & Logging
+```powershell
+# Display clipboard copy button
+MyMsg "API_KEY_12345" --copy -i info
+
+# One-click button to open log file
+MyMsg "Error encountered! Check details." --action "notepad.exe C:\Logs\app.log" -i error
+
+# Append invocation history to file
+MyMsg "Backup done" --timeout 10 --log C:\Logs\history.log -i ok
 ```
 
 ### OS Native Toast Notification Mode (No GUI Window)
