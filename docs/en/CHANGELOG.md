@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-09-29
+
+### Added
+- **Auto-Dismiss Console Window on Standalone Execution (`auto_detach_console_if_standalone`)**:
+  - Automatically queries `GetConsoleProcessList` upon startup to detect if launched standalone (e.g. from Windows Task Scheduler or Explorer).
+  - Immediately releases the console (`FreeConsole()`) to dismiss the black command prompt window without flashing or persisting.
+  - Preserves standard console attachment when launched from PowerShell/cmd, keeping synchronous execution and instant prompt restoration intact.
+- **Active Desktop (`Default`) Strict Verification & Sandbox Isolation Detection**:
+  - Validates that the executing thread is attached to the active user desktop (`Default`) using `GetThreadDesktop` and `GetUserObjectInformationW`.
+  - Reliably detects non-interactive sessions and sandbox isolation environments (such as AntiGravity's `exebox-...` desktop), safely falling back to OS toast notifications (`--toast`).
+- **Secondary Fail-Safe for GUI Window Failures**:
+  - Automatically dispatches an OS desktop toast notification if `eframe::run_native` fails to acquire a display context.
+- **Obsidian Vault Temporary Note Skill**:
+  - Added `.agents/skills/vault-memo/SKILL.md` for recording notes and ideas directly into Obsidian Vault.
+
+### Changed & Improved
+- **Comprehensive Documentation Refresh**:
+  - Fully rebuilt `README.md` and `README_JA.md` with complete CLI option references, usage recipes, and strictly aligned tables for gVim readability.
+  - Standardized copyright holder to `tkshnkgwr`.
+
 ## [1.2.0] - 2026-09-07
 
 ### Added

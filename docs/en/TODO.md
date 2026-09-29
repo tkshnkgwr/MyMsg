@@ -26,6 +26,9 @@ This document tracks completed implementation milestones and the future enhancem
 - [x] **Clipboard Copy / Custom Action Buttons (`--copy`, `--action <cmd>`)**: Actionable buttons inside the popup to copy text to clipboard (with feedback) and execute external commands.
 - [x] **Logging to File (`--log <file>`)**: Append invocation timestamps, popup counts, dismiss reasons, and action execution logs to a specified file.
 - [x] **Headless / Non-Interactive Session (Session 0) Detection**: Automatically detect non-interactive environments and fallback to OS toast/logging with warnings.
+- [x] **Active Desktop (`Default`) Strict Verification & Sandbox Isolation Detection**: Verify thread desktop attachment to detect sandbox environments and safely fallback to OS toast notifications.
+- [x] **Auto-Dismiss Console Window on Standalone Execution (`auto_detach_console_if_standalone`)**: Automatically detects standalone invocations and calls `FreeConsole()` to dismiss DOS windows.
+- [x] **Secondary Fail-Safe for GUI Window Failures**: Automatically dispatches an OS toast notification when window context creation fails.
 - [x] **Notification Sound / Chime Option (`--sound` / `--beep`)**: Play system alerts, chimes, or beeps when popup or toast notification triggers.
 - [x] **CJK / Japanese Font Detection**: OS font auto-discovery to prevent mojibake.
 - [x] **Automated Test Suite**: Unit tests covering parsing, time calculations, theme resolution, logging, session detection, sound, and math.
