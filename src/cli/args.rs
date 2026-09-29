@@ -10,8 +10,8 @@ use clap::Parser;
 #[derive(Parser, Debug, Clone, PartialEq)]
 #[command(
     name = "mymsg",
-    author = "MyMsg Developer",
-    version,
+    author = "tkshnkgwr",
+    version = concat!("v", env!("CARGO_PKG_VERSION"), "\nCopyright (c) 2026 tkshnkgwr\nLicense: MIT"),
     about = "最前面メッセージポップアップCLIツール",
     long_about = "低リソース環境向けに最適化された、最前面固定のメッセージポップアップ通知CLIです。EscまたはEnterで即座に閉じられます。"
 )]

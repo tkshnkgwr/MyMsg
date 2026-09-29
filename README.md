@@ -6,6 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust 2021/2024](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)](https://www.rust-lang.org)
+[![Version](https://img.shields.io/badge/version-v1.2.0-brightgreen.svg)](Cargo.toml)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/tkshnkgwr/MyMsg)
 
 [English](./README.md) | [日本語](./README_JA.md)
@@ -71,147 +72,146 @@ The compiled binary will be located at `target/release/MyMsg.exe` (or `MyMsg` on
 Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 ```
 
-| Argument / Option   | Short | Default             | Description                                                               |
-| :------------------ | :---: | :-----------------: | :------------------------------------------------------------------------ |
-| `[MESSAGE]`         | -     | None                | Message string to display (Positional argument)                           |
-| `--message <STR>`   | `-m`  | None                | Message string to display (Optional argument)                             |
-| `--size <SIZE>`     | `-s`  | `medium`            | Window size preset (`small`: 300x150, `medium`: 450x220, `large`: 650x350)|
-| `--font-size <PT>`  | -     | Auto                | Font size in points (overrides size preset font size)                     |
-| `--color <COLOR>`   | `-c`  | Default theme color | Text color (named, 1-char shorthand, typo-tolerant, #HEX)                 |
-| `--bg-color <COLOR>`| -     | Default theme color | Window background color                                                   |
-| `--blink`           | `-b`  | `false`             | Enable text blink pulsing animation                                       |
-| `--font <FONT>`     | `-f`  | `default`           | Font family type (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`)   |
-| `--icon <ICON>`     | `-i`  | None                | Icon symbol type (`info`, `warn`, `error`, `ok`)                          |
-| `--theme <THEME>`   | `-t`  | `system`            | Theme selection (`system`, `dark`, `light`)                               |
-| `--delay <SPEC>`    | `-d`  | `0`                 | Delay duration or time of day (`60`, `10m`, `12:00`, max 24h)              |
-| `--monitor <TARGET>`| -     | `cursor`            | Target monitor (`cursor`, `primary`, `0`, `1`, `2`...)                     |
-| `--timeout <SEC>`   | -     | `0`                 | Auto-dismiss timer in seconds (0 to disable)                              |
-| `--toast`           | `-T`  | `false`             | OS native toast notification mode (no GUI window, immediate exit)         |
-| `--interval <INT>`  | -     | None                | Periodic repeat interval (`30m`, `1h`, `300`). Alias: `--every`          |
-| `--at <TIMES>`      | -     | None                | Scheduled times of day (`09:00,12:00,15:00`). Alias: `--schedule`         |
-| `--count <NUM>`     | -     | `0`                 | Maximum notifications (0 for unlimited loop). Alias: `--times`            |
-| `--immediate`       | -     | `false`             | Trigger 1st notification immediately without initial wait                 |
-| `--show-progress`   | -     | `false`             | Show animated countdown progress bar during timeout. Alias: `--progress`  |
-| `--log <FILE>`      | -     | None                | Log file path to append popup lifecycle and action history                |
-| `--copy`            | -     | `false`             | Display a "📋 コピー" (Copy) button to copy message to clipboard          |
-| `--action <CMD>`    | -     | None                | Display a "⚡ 実行" (Execute) button to trigger external commands         |
-| `--sound`           | -     | `false`             | Play system notification sound (chime/beep). Alias: `--beep`              |
-| `--help`            | `-h`  | -                   | Display help message and exit                                             |
-| `--version`         | `-V`  | -                   | Display version information and exit                                      |
+| Argument / Option    | Short | Default             | Description                                                               |
+| :------------------- | :---: | :-----------------: | :------------------------------------------------------------------------ |
+| `[MESSAGE]`          | -     | None                | Message string to display (Positional argument)                           |
+| `--message <STR>`    | `-m`  | None                | Message string to display (Optional argument)                             |
+| `--size <SIZE>`      | `-s`  | `medium`            | Window size preset (`small`: 300x150, `medium`: 450x220, `large`: 650x350)|
+| `--font-size <PT>`   | -     | Auto                | Font size in points (overrides size preset font size)                     |
+| `--color <COLOR>`    | `-c`  | Default theme color | Text color (named, 1-char shorthand, typo-tolerant, #HEX)                 |
+| `--bg-color <COLOR>` | -     | Default theme color | Window background color                                                   |
+| `--blink`            | `-b`  | `false`             | Enable text blink pulsing animation                                       |
+| `--font <FONT>`      | `-f`  | `default`           | Font family type (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`)     |
+| `--icon <ICON>`      | `-i`  | None                | Icon symbol type (`info`, `warn`, `error`, `ok`)                          |
+| `--theme <THEME>`    | `-t`  | `system`            | Theme selection (`system`, `dark`, `light`)                               |
+| `--delay <SPEC>`     | `-d`  | `0`                 | Sleep delay duration or exact target time (`60`, `10m`, `12:00`, max 24h) |
+| `--monitor <TARGET>` | -     | `cursor`            | Target monitor screen (`cursor`, `primary`, `0`, `1`, `2`...)             |
+| `--timeout <SEC>`    | -     | `0`                 | Auto-dismiss timer in seconds (0 = disabled, manual close)                |
+| `--toast`            | `-T`  | `false`             | OS native desktop toast notification mode (no GUI window, instant exit)   |
+| `--interval <INT>`   | -     | None                | Periodic repeat interval (`30m`, `1h`, `300`). Alias `--every`            |
+| `--at <TIMES>`       | -     | None                | Scheduled times of day (`09:00,12:00,15:00`). Alias `--schedule`          |
+| `--count <NUM>`      | -     | `0`                 | Maximum notification iterations (0 = infinite loop). Alias `--times`      |
+| `--immediate`        | -     | `false`             | Show 1st notification immediately without initial wait during repeats     |
+| `--show-progress`    | -     | `false`             | Display animated progress bar during auto-timeout. Alias `--progress`     |
+| `--log <FILE>`       | -     | None                | Append popup lifecycle events and button clicks to specified log file     |
+| `--copy`             | -     | `false`             | Display "📋 Copy" button to copy message string to clipboard              |
+| `--action <CMD>`     | -     | None                | Display "⚡ Run" button to execute external command asynchronously         |
+| `--sound`            | -     | `false`             | Play OS system notification chime / beep sound. Alias `--beep`            |
+| `--help`             | `-h`  | -                   | Print help information and exit                                           |
+| `--version`          | `-V`  | -                   | Print version information and exit                                        |
 
 > [!NOTE]
-> Message string resolution follows strict priority: Positional argument (`MESSAGE`) > Option flag (`-m / --message`) > Default fallback (`"MyMsg: 通知が届きました"`).
+> Message string resolution priority: Positional argument `[MESSAGE]` > `-m / --message` > Default message (`"MyMsg: 通知が届きました"`).
 
 ---
 
-## 💡 Usage Examples
+## 💡 Examples
 
-### Basic Notifications & Icons
+### Basic Popup & Status Icons
 ```powershell
-# Notification with OK icon
-MyMsg "Build completed successfully!" -i ok
+# Success notification with checkmark icon
+MyMsg "All builds completed successfully!" -i ok
 
-# Warning alert with blinking
-MyMsg "Memory usage nearing limit" -i warn -b
+# Warning alert with blinking animation
+MyMsg "High memory usage detected" -i warn -b
 ```
 
-### Themes & Multi-line Text
+### Multi-Line Formatting & Themes
 ```powershell
-# Multi-line message with newline expansion
-MyMsg "Deployment Summary:\n- Passed: 25\n- Skipped: 1\n- Failed: 0" -i info
+# Multi-line message with newlines (auto word-wrapping)
+MyMsg "Job Summary:\nSuccess: 25\nWarnings: 1\nFailures: 0" -i info
 
-# Light mode notification
-MyMsg "Team standup starting now" -t light -i info
+# Light mode theme
+MyMsg "Meeting starts in 5 minutes" -t light -i info
 ```
 
 ### Color & Styling Customization
 ```powershell
-# Urgent alert in large red text
-MyMsg "Critical error encountered" -c red -s large -i error
+# Red warning text in large size
+MyMsg "Critical Service Alert" -c red -s large -i error
 
-# Shorthand color and custom background
-MyMsg "Server online" -c g --bg-color "#0f172a"
+# Shorthand color and custom dark background
+MyMsg "Server Online" -c g --bg-color "#0f172a"
 
-# Hex color and custom font point size
-MyMsg "Operation done" -c "#00E5FF" --font-size 32
+# Hex color and custom font size
+MyMsg "Processing Finished" -c "#00E5FF" --font-size 32
 ```
 
-### Timed Reminders
+### Delay & Time-of-Day Reminders
 ```powershell
-# Reminder in 5 minutes (300 seconds; 0% CPU during wait)
-MyMsg "Time for the meeting" -d 300 -c gold -i info
+# Reminder after 5 minutes (300 seconds; zero CPU/RAM while sleeping)
+MyMsg "Time for standup meeting" -d 300 -c gold -i info
 ```
 
-### Shell & Script Integration
+### Pipeline & PowerShell Automation
 ```powershell
-# Notify on build script completion
+# Notify upon completion of a build script
 npm run build; MyMsg "npm build complete!" -c cyan -i ok
 ```
 
-### Scheduled Tasks & Automation (`--timeout` recommended)
+### Task Scheduler / Scheduled Execution (`--timeout` Recommended)
 ```powershell
-# Auto-dismisses in 15 seconds so unattended runs never block
-MyMsg "Daily backup completed" -i ok -c green --timeout 15
+# Auto-dismiss after 15 seconds to prevent blocking unattended jobs
+MyMsg "Scheduled backup finished" -i ok -c green --timeout 15
 
-# Auto-dismisses with animated countdown progress bar
-MyMsg "Processing finished" --timeout 5 --show-progress -i ok
+# Auto-dismiss with progress bar countdown
+MyMsg "Sync complete" --timeout 5 --show-progress -i ok
 
-# Desktop toast notification mode
-MyMsg "Time to stretch!" -i info --toast
+# Send to OS Notification Center instead of GUI popup
+MyMsg "Daily stretch reminder" -i info --toast
 ```
 
-### Interval & Scheduled Reminders
+### Interval & Scheduled Notifications
 ```powershell
-# Repeat notification every 30 minutes (immediate 1st popup, max 3 times)
-MyMsg "Drink water and stay hydrated" --interval 30m --immediate --count 3 -i info
+# Repeat notification every 30 minutes (3 times maximum, immediate 1st run)
+MyMsg "Stay hydrated!" --interval 30m --immediate --count 3 -i info
 
-# Trigger sequentially at designated times throughout the day
-MyMsg "Team Standup meeting" --at 09:30,13:00,17:00 -i warn
+# Trigger notifications at exact times of day
+MyMsg "Team sync" --at 09:30,13:00,17:00 -i warn
 ```
 
-### Clipboard Copy, Custom Actions & Logging
+### Clipboard Copy, Command Action & Audit Logging
 ```powershell
-# Display clipboard copy button
+# Display copy button to quickly copy tokens or URLs
 MyMsg "TOKEN=abc123xyz456" --copy -i info
 
-# One-click button to open log file, appending lifecycle history to log
-MyMsg "Build failed!" -i error --action "notepad.exe C:\Logs\build.log" --log C:\Logs\mymsg.log
+# Action button to open log file, appending events to audit log
+MyMsg "Build failed!" -i error --action "notepad.exe %USERPROFILE%\Logs\build.log" --log "%USERPROFILE%\Logs\mymsg.log"
 ```
 
-### System Notification Sound (Chimes & Beeps)
+### System Notification Sound (Chime / Beep)
 ```powershell
-# Alert with warning chime
-MyMsg "Critical database connection failure!" -i warn --sound
+# Play warning beep alongside warning icon
+MyMsg "Fatal connection timeout!" -i warn --sound
 
-# Play success chime alongside OS native toast (alias --beep)
-MyMsg "Batch processing complete!" --toast -i ok --beep
+# Play chime sound on toast notification (alias --beep)
+MyMsg "All operations succeeded" --toast -i ok --beep
 ```
-
 
 ---
 
-## 📚 Documentation
+## 📚 Documentation Index
 
-Complete specifications and architectural design documents are maintained in the `docs/` directory:
+Comprehensive specifications and technical design docs are located in the `docs/` directory:
 
-| Japanese (docs/ja/) | English (docs/en/) | Description |
-| :--- | :--- | :--- |
-| [Specification](docs/ja/SPECIFICATION.md) | [Specification](docs/en/SPECIFICATION.md) | Full CLI options, UI behaviors, and exit triggers |
-| [Architecture](docs/ja/ARCHITECTURE.md) | [Architecture](docs/en/ARCHITECTURE.md) | Internal module design, state flow, and rendering loop |
-| [User Guide](docs/ja/USER_GUIDE.md) | [User Guide](docs/en/USER_GUIDE.md) | Practical command cookbook and script recipes |
-| [Development](docs/ja/DEVELOPMENT.md) | [Development](docs/en/DEVELOPMENT.md) | Environment setup, building, and unit tests |
-| [Release Guide](docs/ja/RELEASE.md) | [Release Guide](docs/en/RELEASE.md) | Release builds, binary size optimization, and distribution |
-| [AI Instructions](docs/ja/INSTRUCTIONS.md) | [AI Instructions](docs/en/INSTRUCTIONS.md) | AI agent coding rules, prompts, and guidelines |
-| [Testing Plan](docs/ja/TESTING.md) | [Testing Plan](docs/en/TESTING.md) | Test matrix, unit tests, and manual verification |
-| [Test Report](docs/ja/TEST_REPORT.md) | [Test Report](docs/en/TEST_REPORT.md) | Initial verification report and evidence |
-| [TODO Roadmap](docs/ja/TODO.md) | [TODO Roadmap](docs/en/TODO.md) | Completed milestones and upcoming features |
-| [Footprints](docs/ja/FOOTPRINTS.md) | [Footprints](docs/en/FOOTPRINTS.md) | RAM, CPU, startup time, and binary size benchmarks |
-| [Changelog](docs/ja/CHANGELOG.md) | [Changelog](docs/en/CHANGELOG.md) | Detailed version history |
-| [Security Policy](docs/ja/SECURITY.md) | [Security Policy](docs/en/SECURITY.md) | Security model, input validation, and reporting |
-| [Contributing](docs/ja/CONTRIBUTING.md) | [Contributing](docs/en/CONTRIBUTING.md) | Issue/PR workflow, branching, and commit conventions |
+| Japanese (docs/ja/)                    | English (docs/en/)                       | Description                                      |
+| :------------------------------------- | :--------------------------------------- | :----------------------------------------------- |
+| [詳細仕様書](docs/ja/SPECIFICATION.md) | [Specification](docs/en/SPECIFICATION.md)| Complete CLI arguments, UI, and lifecycle specs  |
+| [内部アーキテクチャ](docs/ja/ARCHITECTURE.md) | [Architecture](docs/en/ARCHITECTURE.md) | Module layout, data flow, and render loop        |
+| [ユーザーガイド](docs/ja/USER_GUIDE.md)| [User Guide](docs/en/USER_GUIDE.md)      | Practical recipes, shell integrations, and tips  |
+| [開発ガイド](docs/ja/DEVELOPMENT.md)   | [Development](docs/en/DEVELOPMENT.md)    | Build environment setup and unit tests           |
+| [リリース手順](docs/ja/RELEASE.md)     | [Release Guide](docs/en/RELEASE.md)      | Optimization flags and distribution instructions |
+| [AI開発指示書](docs/ja/INSTRUCTIONS.md) | [AI Instructions](docs/en/INSTRUCTIONS.md) | Guidelines for automated AI agent contributions |
+| [テスト仕様書](docs/ja/TESTING.md)     | [Testing](docs/en/TESTING.md)            | Unit test suites and verification matrices       |
+| [テスト実行報告書](docs/ja/TEST_REPORT.md) | [Test Report](docs/en/TEST_REPORT.md)  | Initial version verification report              |
+| [開発タスクリスト](docs/ja/TODO.md)    | [TODO](docs/en/TODO.md)                  | Implemented features and forward roadmap         |
+| [リソース指標](docs/ja/FOOTPRINTS.md)  | [Footprints](docs/en/FOOTPRINTS.md)      | Memory, startup time, and CPU benchmarks         |
+| [変更履歴](docs/ja/CHANGELOG.md)       | [Changelog](docs/en/CHANGELOG.md)        | Version history and changelog                    |
+| [セキュリティ方針](docs/ja/SECURITY.md)| [Security](docs/en/SECURITY.md)          | Security policy and vulnerability disclosure     |
+| [コントリビューション](docs/ja/CONTRIBUTING.md) | [Contributing](docs/en/CONTRIBUTING.md) | Contributing guidelines and PR workflow          |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License - Copyright (c) 2026 tkshnkgwr. See the [LICENSE](LICENSE) file for details.

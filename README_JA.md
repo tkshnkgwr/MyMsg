@@ -6,6 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust 2021/2024](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)](https://www.rust-lang.org)
+[![Version](https://img.shields.io/badge/version-v1.2.0-brightgreen.svg)](Cargo.toml)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/tkshnkgwr/MyMsg)
 
 [English](./README.md) | [日本語](./README_JA.md)
@@ -45,7 +46,7 @@
 - 🚨 **点滅モード（`--blink` / `-b`）**: 緊急通知用の明滅エフェクト（約0.5秒周期）。
 - 🔤 **日本語フォント自動検出**: OS（Windows/macOS/Linux）標準の日本語フォントを自動検出し、文字化け（豆腐化）を防止。
 - 🔔 **通知音オプション（`--sound` / `--beep`）**: ポップアップ表示時・トースト送信時にOSのシステムチャイム音（Windows `MessageBeep` 等）を再生（アイコン種別に連動）。
-- 🛡️ **ヘッドレス / 非対話セッション（Session 0）自動検知**: Windows サービスやバックグラウンドスケジューラでの GUI 描画不可を自動検知し、警告出力＆トースト通知へ自動フォールバック。
+- 🛡️ **ヘッドレス / 非対話セッション（Session 0）自動検知**: Windows サービスやバックグラウンドタスク等のデスクトップ非表示環境を自動検知し、警告出力＆トースト通知へ自動フォールバック。
 - 📦 **単一バイナリ**: 外部依存ライブラリ不要のシングル実行ファイル。
 
 ---
@@ -71,33 +72,33 @@ cargo build --release
 Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 ```
 
-| 引数 / オプション   | 短縮形 | デフォルト値   | 説明                                                                     |
-| :------------------ | :----: | :------------: | :----------------------------------------------------------------------- |
-| `[MESSAGE]`         | -      | なし           | 表示するメッセージ文字列（位置引数）                                     |
-| `--message <STR>`   | `-m`   | なし           | 表示するメッセージ文字列（オプション引数）                               |
-| `--size <SIZE>`     | `-s`   | `medium`       | ウィンドウサイズ (`small`: 300x150, `medium`: 450x220, `large`: 650x350)  |
-| `--font-size <PT>`  | -      | 自動算出       | 文字サイズ（pt単位、指定時はサイズプリセットより優先）                   |
-| `--color <COLOR>`   | `-c`   | 省略時テーマ色 | 文字色（名前、1文字略称、タイポ、#HEX）                                  |
-| `--bg-color <COLOR>`| -      | 省略時テーマ色 | ウィンドウ背景色                                                         |
-| `--blink`           | `-b`   | `false`        | メッセージ文字の明滅エフェクトを有効化                                   |
-| `--font <FONT>`     | `-f`   | `default`      | フォント種別 (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`)         |
-| `--icon <ICON>`     | `-i`   | なし           | アイコン種別 (`info`, `warn`, `error`, `ok`)                             |
-| `--theme <THEME>`   | `-t`   | `system`       | テーマ設定 (`system`, `dark`, `light`)                                   |
-| `--delay <SPEC>`    | `-d`   | `0`            | 遅延秒数・時刻指定 (`60`, `10m`, `12:00`、最大24時間)                    |
-| `--monitor <TARGET>`| -      | `cursor`       | 表示先モニター (`cursor`, `primary`, `0`, `1`, `2`...)                   |
-| `--timeout <SEC>`   | -      | `0`            | 自動消去タイマー（秒単位、0で無効）                                      |
-| `--toast`           | `-T`   | `false`        | OS標準のトースト通知モード（GUI非生成・即時終了）                        |
-| `--interval <INT>`  | -      | なし           | 定期実行間隔（`30m`, `1h`, `300` 等）。エイリアス `--every`              |
-| `--at <TIMES>`      | -      | なし           | 指定時刻スケジュール（`09:00,12:00,15:00` 等）。エイリアス `--schedule`  |
-| `--count <NUM>`     | -      | `0`            | 最大通知回数（0で無制限ループ）。エイリアス `--times`                    |
-| `--immediate`       | -      | `false`        | 定期実行時、初回待機を行わず即座に1回目を表示                            |
-| `--show-progress`   | -      | `false`        | タイムアウト時の残り時間・プログレスバーを表示。エイリアス `--progress`   |
-| `--log <FILE>`      | -      | なし           | ポップアップ表示履歴や操作ログの追記先ファイルパス                       |
-| `--copy`            | -      | `false`        | メッセージ文字列をコピーする「📋 コピー」ボタンを表示                     |
-| `--action <CMD>`    | -      | なし           | ワンクリックで外部コマンドを実行する「⚡ 実行」ボタンを表示               |
-| `--sound`           | -      | `false`        | 表示・通知時にシステム通知音（チャイム/ビープ音）を再生。エイリアス `--beep`|
-| `--help`            | `-h`   | -              | ヘルプメッセージを表示して終了                                           |
-| `--version`         | `-V`   | -              | バージョン情報を表示して終了                                             |
+| 引数 / オプション    | 短縮形 | デフォルト値   | 説明                                                                         |
+| :------------------- | :----: | :------------: | :--------------------------------------------------------------------------- |
+| `[MESSAGE]`          | -      | なし           | 表示するメッセージ文字列（位置引数）                                         |
+| `--message <STR>`    | `-m`   | なし           | 表示するメッセージ文字列（オプション引数）                                   |
+| `--size <SIZE>`      | `-s`   | `medium`       | ウィンドウサイズ (`small`: 300x150, `medium`: 450x220, `large`: 650x350)      |
+| `--font-size <PT>`   | -      | 自動算出       | 文字サイズ（pt単位、指定時はサイズプリセットより優先）                       |
+| `--color <COLOR>`    | `-c`   | 省略時テーマ色 | 文字色（名前、1文字略称、タイポ、#HEX）                                      |
+| `--bg-color <COLOR>` | -      | 省略時テーマ色 | ウィンドウ背景色                                                             |
+| `--blink`            | `-b`   | `false`        | メッセージ文字の明滅エフェクトを有効化                                       |
+| `--font <FONT>`      | `-f`   | `default`      | フォント種別 (`default`/`sans`, `mono`/`2`, `serif`/`3`, `impact`)             |
+| `--icon <ICON>`      | `-i`   | なし           | アイコン種別 (`info`, `warn`, `error`, `ok`)                                 |
+| `--theme <THEME>`    | `-t`   | `system`       | テーマ設定 (`system`, `dark`, `light`)                                       |
+| `--delay <SPEC>`     | `-d`   | `0`            | 遅延秒数・時刻指定 (`60`, `10m`, `12:00`、最大24時間)                        |
+| `--monitor <TARGET>` | -      | `cursor`       | 表示先モニター (`cursor`, `primary`, `0`, `1`, `2`...)                       |
+| `--timeout <SEC>`    | -      | `0`            | 自動消去タイマー（秒単位、0で無効）                                          |
+| `--toast`            | `-T`   | `false`        | OS標準のトースト通知モード（GUI非生成・即時終了）                            |
+| `--interval <INT>`   | -      | なし           | 定期実行間隔（`30m`, `1h`, `300` 等）。エイリアス `--every`                  |
+| `--at <TIMES>`       | -      | なし           | 指定時刻スケジュール（`09:00,12:00,15:00` 等）。エイリアス `--schedule`      |
+| `--count <NUM>`      | -      | `0`            | 最大通知回数（0で無制限ループ）。エイリアス `--times`                        |
+| `--immediate`        | -      | `false`        | 定期実行時、初回待機を行わず即座に1回目を表示                                |
+| `--show-progress`    | -      | `false`        | タイムアウト時の残り時間・プログレスバーを表示。エイリアス `--progress`       |
+| `--log <FILE>`       | -      | なし           | ポップアップ表示履歴や操作ログの追記先ファイルパス                           |
+| `--copy`             | -      | `false`        | メッセージ文字列をコピーする「📋 コピー」ボタンを表示                         |
+| `--action <CMD>`     | -      | なし           | ワンクリックで外部コマンドを実行する「⚡ 実行」ボタンを表示                   |
+| `--sound`            | -      | `false`        | 表示・通知時にシステム通知音（チャイム/ビープ音）を再生。エイリアス `--beep` |
+| `--help`             | `-h`   | -              | ヘルプメッセージを表示して終了                                               |
+| `--version`          | `-V`   | -              | バージョン情報を表示して終了                                                 |
 
 > [!NOTE]
 > メッセージ文字列は、位置引数（`MESSAGE`）が指定されている場合はそちらが最優先され、次に `-m / --message`、いずれも省略された場合は `"MyMsg: 通知が届きました"` が表示されます。
@@ -175,7 +176,7 @@ MyMsg "定例ミーティングです" --at 09:30,13:00,17:00 -i warn
 MyMsg "TOKEN=abc123xyz456" --copy -i info
 
 # 外部コマンド実行アクションボタンを配置しログファイルへ追記
-MyMsg "ビルドが失敗しました" -i error --action "notepad.exe C:\Logs\build.log" --log C:\Logs\mymsg.log
+MyMsg "ビルドが失敗しました" -i error --action "notepad.exe %USERPROFILE%\Logs\build.log" --log "%USERPROFILE%\Logs\mymsg.log"
 ```
 
 ### システム通知音（チャイム・ビープ音）再生
@@ -187,31 +188,30 @@ MyMsg "致命的なエラーが発生しました！" -i warn --sound
 MyMsg "すべての処理が正常終了しました" --toast -i ok --beep
 ```
 
-
 ---
 
 ## 📚 ドキュメント一覧
 
 詳細な仕様および設計書は `docs/` ディレクトリ配下に格納されています。
 
-| 日本語ドキュメント (docs/ja/) | 英語ドキュメント (docs/en/) | 概要 |
-| :--- | :--- | :--- |
-| [詳細仕様書](docs/ja/SPECIFICATION.md) | [Specification](docs/en/SPECIFICATION.md) | 全引数・UI・キーバインド・終了条件の完全仕様 |
-| [内部アーキテクチャ](docs/ja/ARCHITECTURE.md) | [Architecture](docs/en/ARCHITECTURE.md) | モジュール設計・データフロー・描画ループ |
-| [ユーザーガイド](docs/ja/USER_GUIDE.md) | [User Guide](docs/en/USER_GUIDE.md) | 実践的な逆引きコマンド集・シェル連携 |
-| [開発ガイド](docs/ja/DEVELOPMENT.md) | [Development](docs/en/DEVELOPMENT.md) | 開発環境セットアップ・単体テスト実行 |
-| [リリース手順](docs/ja/RELEASE.md) | [Release Guide](docs/en/RELEASE.md) | 最適化ビルド・バイナリ配布手順 |
-| [AI開発指示書](docs/ja/INSTRUCTIONS.md) | [AI Instructions](docs/en/INSTRUCTIONS.md) | AIエージェント向け運用ガイドライン |
-| [テスト仕様書](docs/ja/TESTING.md) | [Testing](docs/en/TESTING.md) | 単体テスト・手動検証チェックリスト |
-| [テスト実行報告書](docs/ja/TEST_REPORT.md) | [Test Report](docs/en/TEST_REPORT.md) | 初回バージョンの動作検証結果記録 |
-| [開発タスクリスト](docs/ja/TODO.md) | [TODO](docs/en/TODO.md) | 実装済み機能と今後の拡張ロードマップ |
-| [リソース指標](docs/ja/FOOTPRINTS.md) | [Footprints](docs/en/FOOTPRINTS.md) | メモリ・起動時間・CPU使用率ベンチマーク |
-| [変更履歴](docs/ja/CHANGELOG.md) | [Changelog](docs/en/CHANGELOG.md) | バージョン別変更履歴 |
-| [セキュリティ方針](docs/ja/SECURITY.md) | [Security](docs/en/SECURITY.md) | セキュリティポリシー・脆弱性報告窓口 |
-| [コントリビューション](docs/ja/CONTRIBUTING.md) | [Contributing](docs/en/CONTRIBUTING.md) | 開発参加・Issue/PRガイドライン |
+| 日本語ドキュメント (docs/ja/)          | 英語ドキュメント (docs/en/)              | 概要                                         |
+| :------------------------------------- | :--------------------------------------- | :------------------------------------------- |
+| [詳細仕様書](docs/ja/SPECIFICATION.md) | [Specification](docs/en/SPECIFICATION.md)| 全引数・UI・キーバインド・終了条件の完全仕様 |
+| [内部アーキテクチャ](docs/ja/ARCHITECTURE.md) | [Architecture](docs/en/ARCHITECTURE.md) | モジュール設計・データフロー・描画ループ     |
+| [ユーザーガイド](docs/ja/USER_GUIDE.md)| [User Guide](docs/en/USER_GUIDE.md)      | 実践的な逆引きコマンド集・シェル連携         |
+| [開発ガイド](docs/ja/DEVELOPMENT.md)   | [Development](docs/en/DEVELOPMENT.md)    | 開発環境セットアップ・単体テスト実行         |
+| [リリース手順](docs/ja/RELEASE.md)     | [Release Guide](docs/en/RELEASE.md)      | 最適化ビルド・バイナリ配布手順               |
+| [AI開発指示書](docs/ja/INSTRUCTIONS.md) | [AI Instructions](docs/en/INSTRUCTIONS.md) | AIエージェント向け運用ガイドライン        |
+| [テスト仕様書](docs/ja/TESTING.md)     | [Testing](docs/en/TESTING.md)            | 単体テスト・手動検証チェックリスト           |
+| [テスト実行報告書](docs/ja/TEST_REPORT.md) | [Test Report](docs/en/TEST_REPORT.md)  | 初回バージョンの動作検証結果記録             |
+| [開発タスクリスト](docs/ja/TODO.md)    | [TODO](docs/en/TODO.md)                  | 実装済み機能と今後の拡張ロードマップ         |
+| [リソース指標](docs/ja/FOOTPRINTS.md)  | [Footprints](docs/en/FOOTPRINTS.md)      | メモリ・起動時間・CPU使用率ベンチマーク      |
+| [変更履歴](docs/ja/CHANGELOG.md)       | [Changelog](docs/en/CHANGELOG.md)        | バージョン別変更履歴                         |
+| [セキュリティ方針](docs/ja/SECURITY.md)| [Security](docs/en/SECURITY.md)          | セキュリティポリシー・脆弱性報告窓口         |
+| [コントリビューション](docs/ja/CONTRIBUTING.md) | [Contributing](docs/en/CONTRIBUTING.md) | 開発参加・Issue/PRガイドライン       |
 
 ---
 
 ## 📄 ライセンス
 
-本プロジェクトは [MIT License](LICENSE) の下で公開されています。
+本プロジェクトは MIT License のもとで公開されています - Copyright (c) 2026 tkshnkgwr。詳細は [LICENSE](LICENSE) をご覧ください。

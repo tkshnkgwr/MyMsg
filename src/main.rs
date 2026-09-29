@@ -43,6 +43,9 @@ use std::thread;
 use std::time::Duration;
 
 fn main() -> eframe::Result<()> {
+    // タスクスケジューラやエクスプローラーから単独起動された場合は自動的に黒いコンソール窓を解放・消去
+    session::auto_detach_console_if_standalone();
+
     let mut args = CliArgs::parse();
 
     // ヘッドレス / 非対話セッション (Session 0) の検出と自動フォールバック
@@ -213,6 +216,17 @@ fn main() -> eframe::Result<()> {
 
         if let Err(err) = res {
             eprintln!("MyMsg: ウィンドウの実行に失敗しました: {err}");
+            eprintln!("MyMsg: OSトースト通知へ自動フォールバックします。");
+            let _ = toast::send_toast_notification(&args);
+            if let Some(ref path) = args.log {
+                log::append_log(
+                    path,
+                    log::LogEvent::Action {
+                        cmd: "WindowLaunchFailed: Fallback to Toast",
+                        success: true,
+                    },
+                );
+            }
             break;
         }
 

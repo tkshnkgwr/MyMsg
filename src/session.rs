@@ -13,25 +13,35 @@
 //! 本モジュールは、現在のプロセスが対話型セッションで動作しているかを安全に判定し、
 //! アプリケーションが自動的にトースト通知モード（`--toast`）へフォールバックできるように支援します。
 
+/// タスクスケジューラやエクスプローラーから直接起動された際、
+/// OSによって自動生成された単独コンソール（黒いDOS窓）を自動的に解放・消去します。
+/// PowerShell や cmd から起動された場合は既存コンソールを維持し、
+/// 通常のコンソールCLIとして同期実行・プロンプト即時復帰を実現します。
+pub fn auto_detach_console_if_standalone() {
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::System::Console::{FreeConsole, GetConsoleProcessList};
+
+        unsafe {
+            let mut process_list = [0u32; 2];
+            let count = GetConsoleProcessList(process_list.as_mut_ptr(), 2);
+            // コンソールに属するプロセスが自分自身のみ（1つだけ）の場合は単独起動されたDOS窓なので閉じる
+            if count == 1 {
+                FreeConsole();
+            }
+        }
+    }
+}
+
 /// 現在のプロセスがユーザーと対話可能なセッション（対話型デスクトップ）で実行されているかを判定します。
-///
-/// # プラットフォーム固有の動作
-/// - **Windows**:
-///   `GetProcessWindowStation` で現在のウィンドウステーションハンドルを取得し、
-///   `GetUserObjectInformationW` で `UOI_FLAGS`（`USEROBJECTFLAGS`）を問い合わせます。
-///   `dwFlags` に `WSF_VISIBLE` (0x0001) が含まれている場合に対話型（表示可能）と判定します。
-/// - **Linux / macOS**:
-///   環境変数 `DISPLAY` または `WAYLAND_DISPLAY` が設定されている場合に対話型と判定します。
-///
-/// # 戻り値
-/// - `true`: 対話型デスクトップが利用可能（GUI ポップアップ表示可能）。
-/// - `false`: 非対話セッション・ヘッドレス環境（GUI 表示不可、トースト等へのフォールバック推奨）。
 pub fn is_interactive_session() -> bool {
     #[cfg(windows)]
     {
         use windows_sys::Win32::System::StationsAndDesktops::{
-            GetProcessWindowStation, GetUserObjectInformationW, UOI_FLAGS, USEROBJECTFLAGS,
+            GetProcessWindowStation, GetThreadDesktop, GetUserObjectInformationW, UOI_FLAGS,
+            UOI_NAME, USEROBJECTFLAGS,
         };
+        use windows_sys::Win32::System::Threading::GetCurrentThreadId;
 
         const WSF_VISIBLE: u32 = 0x0001;
 
@@ -60,7 +70,35 @@ pub fn is_interactive_session() -> bool {
             }
 
             // WSF_VISIBLE フラグが立っていれば対話型ウィンドウステーション（WinSta0）
-            (flags.dwFlags & WSF_VISIBLE) != 0
+            if (flags.dwFlags & WSF_VISIBLE) == 0 {
+                return false;
+            }
+
+            // 現在のスレッドがアタッチされているデスクトップ名を取得
+            let hdesk = GetThreadDesktop(GetCurrentThreadId());
+            if hdesk == 0 {
+                return false;
+            }
+
+            let mut desktop_name = [0u16; 256];
+            let mut dlen = 0u32;
+            if GetUserObjectInformationW(
+                hdesk,
+                UOI_NAME,
+                desktop_name.as_mut_ptr() as *mut _,
+                (desktop_name.len() * 2) as u32,
+                &mut dlen,
+            ) == 0
+            {
+                return false;
+            }
+
+            let name = String::from_utf16_lossy(&desktop_name[..dlen as usize / 2])
+                .trim_matches('\0')
+                .to_string();
+
+            // ユーザーが見ているアクティブなデスクトップ ("Default") の場合のみ対話型と判定
+            name.eq_ignore_ascii_case("default")
         }
     }
 
