@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-02
+
 ### Changed & Improved
 - **Intuitive Dismissal & Abort Flow for Recurring Notifications (`--interval`)**:
   - Pressing `Enter` (or clicking `[✓ 今回閉じる]`) cleanly dismisses the current notification and proceeds to the next scheduled interval wait.
