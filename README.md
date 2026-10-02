@@ -38,7 +38,7 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
   - Typo tolerance (`bule` -> Blue)
   - Hex codes (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, optional leading `#`)
 - ⏱️ **Zero-Overhead Timer / Delay & Time-of-Day Mode (`--delay` / `-d`)**: Supports seconds (`60`), unit duration (`10m`, `1h`), or exact time of day (`12:00`) before displaying notification (zero GUI resource consumption during sleep mode; safety-capped at 24h / 86400s).
-- 🔄 **Interval & Scheduled Notifications (`--interval` / `--at`)**: Recurring notifications at fixed intervals (e.g., `30m`) or multiple designated times of day (`09:00,12:00,15:00`) with `--count` and `--immediate` flags.
+- 🔄 **Interval & Scheduled Notifications (`--interval` / `--at`)**: Recurring notifications at fixed intervals (e.g., `30m`) or designated time of day (`15:00`) with `--count` and `--immediate` flags.
 - ⏳ **Timeout Progress Bar (`--show-progress`)**: Smooth countdown progress bar displayed in the bottom panel when `--timeout` is set.
 - 📋 **Clipboard Copy & Command Execution (`--copy`, `--action <cmd>`)**: One-click action buttons to copy message text or trigger external commands in the background.
 - 📝 **Event Logging (`--log <file>`)**: Automatically append popup invocation timestamps, counts, dismiss reasons, and user actions to a log file.
@@ -89,7 +89,7 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--timeout <SEC>`    | -     | `0`                 | Auto-dismiss timer in seconds (0 = disabled, manual close)                |
 | `--toast`            | `-T`  | `false`             | OS native desktop toast notification mode (no GUI window, instant exit)   |
 | `--interval <INT>`   | -     | None                | Periodic repeat interval (`30m`, `1h`, `300`). Alias `--every`            |
-| `--at <TIMES>`       | -     | None                | Scheduled times of day (`09:00,12:00,15:00`). Alias `--schedule`          |
+| `--at <TIME>`        | -     | None                | Scheduled time of day (`15:00`, single only). Alias `--schedule`          |
 | `--count <NUM>`      | -     | `0`                 | Maximum notification iterations (0 = infinite loop). Alias `--times`      |
 | `--immediate`        | -     | `false`             | Show 1st notification immediately without initial wait during repeats     |
 | `--show-progress`    | -     | `false`             | Display animated progress bar during auto-timeout. Alias `--progress`     |
@@ -164,10 +164,11 @@ MyMsg "Daily stretch reminder" -i info --toast
 ### Interval & Scheduled Notifications
 ```powershell
 # Repeat notification every 30 minutes (3 times maximum, immediate 1st run)
+# Note: Press Enter (or [✓ 今回閉じる]) for next wait, Esc (or [✕ 中止]) to abort and exit
 MyMsg "Stay hydrated!" --interval 30m --immediate --count 3 -i info
 
-# Trigger notifications at exact times of day
-MyMsg "Team sync" --at 09:30,13:00,17:00 -i warn
+# Trigger notification at an exact time of day (single run, exits cleanly on Esc/Enter)
+MyMsg "Team sync" --at 15:00 -i warn
 ```
 
 ### Clipboard Copy, Command Action & Audit Logging

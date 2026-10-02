@@ -6,7 +6,7 @@
 
 ## 1. 自動単体テスト仕様
 
-`src/cli/`、`src/color.rs`、`src/log.rs`、`src/session.rs`、`src/sound.rs` 内の `mod tests` に実装されているテストケース一覧です（計18件）。
+`src/app.rs`、`src/cli/`、`src/color.rs`、`src/log.rs`、`src/session.rs`、`src/sound.rs` 内の `mod tests` に実装されているテストケース一覧です（計20件）。
 
 | テスト関数名                           | テスト対象                     | 検証項目                                                                   | 期待結果                                       |
 | :------------------------------------- | :----------------------------- | :------------------------------------------------------------------------- | :--------------------------------------------- |
@@ -22,10 +22,12 @@
 | `test_parse_color_hex`                 | `parse_color`                  | 6桁HEX、3桁HEX、8桁RGBA、不正値                                            | 正確な `Color32` 値または `None` が返ること    |
 | `test_resolve_theme_palette`           | `resolve_theme_palette`        | システムテーマ判定とカスタム色指定の優先解決                               | 正しい `ThemePalette` が構成されること         |
 | `test_parse_duration_and_interval`     | `parse_interval_to_seconds`    | 秒数、単位付き間隔（`30m` 等）、0秒・無効値判定                            | 正しい秒数または `None` が返ること             |
-| `test_parse_at_times`                  | `parse_at_times`               | カンマ区切り複数時刻指定、重複排除、昇構ソート                             | 重複なし昇順の `NaiveTime` リストが返ること    |
-| `test_calculate_next_schedule_wait`    | `calculate_next_schedule_wait` | 現在時刻に対する次回予定時刻の差分計算および翌日ループ待機計算             | 正確な次回待機秒数が算出されること             |
+| `test_parse_at_time`                   | `parse_at_time`                | 単一時刻指定、複数時刻（カンマ区切り）の拒絶、不正値判定                   | 正しい `NaiveTime` または `None` が返ること    |
+| `test_calculate_at_wait`               | `calculate_at_wait`            | 現在時刻に対する指定時刻の差分秒数計算および過去時刻の翌日繰り越し計算     | 正確な待機秒数が算出されること                 |
+| `test_has_next_schedule`               | `MyMsgApp::has_next_schedule`  | 通常起動、`--at`（単発）、`--interval`、最大回数到達時の次回有無判定        | 正しい真偽値が返ること                         |
 | `test_append_log_flow`                 | `log::append_log`              | `OPEN`, `CLOSE`, `COPY`, `ACTION` イベントの追記および改行エスケープ       | 正確なフォーマットでログファイルに追記されること|
-| `test_cli_args_parsing_new_features`   | `CliArgs::try_parse_from`      | `--show-progress`, `--log`, `--copy`, `--action`, `--sound` オプションパース| 各フィールドに正しい値が格納されること         |
+| `test_cli_args_parsing_new_features`   | `CliArgs::try_parse_from`      | `--show-progress`, `--log`, `--copy`, `--action`, `--sound`, `--at` パース  | 各フィールドに正しい値が格納されること         |
+| `test_cli_args_parsing_recurring`      | `CliArgs::try_parse_from`      | `--interval`, `--count`, `--immediate` パース                              | 各フィールドに正しい値が格納されること         |
 | `test_is_interactive_session_callable` | `session::is_interactive_session` | 対話的ウィンドウステーション・デスクトップ検出処理の呼び出し検証          | パニックせず真偽値（環境に応じた値）を返すこと |
 | `test_play_sound_does_not_panic`       | `sound::play_notification_sound` | 各種アイコン指定時のサウンド再生処理の呼び出し検証                         | 例外やパニックを起こさず正常実行されること     |
 
@@ -42,12 +44,15 @@ cargo test
 - [ ] `MyMsg.exe --help` で詳細なヘルプが出力され、`-d` の時刻・単位例が明記されていること。
 - [ ] `MyMsg.exe -h` でコンパクトな短縮ヘルプが出力されること。
 - [ ] `MyMsg.exe --version` でバージョンが出力されること。
+- [ ] `--at 09:00,12:00` のようにカンマ区切りで複数時刻を指定した場合に、エラーメッセージが出力され終了コード 1 で終了すること。
 - [ ] 不正な引数でエラーメッセージとUsageが表示されること。
 
 ### 2.2 GUI 描画 & キー操作検証
 - [ ] `MyMsg.exe "テスト通知"` でウィンドウが画面中央最前面に表示されること。
-- [ ] `Esc` / `Enter` キーを押すと即座にウィンドウが閉じること。
-- [ ] 下部ボタン `[✕ 閉じる (Esc / Enter)]` クリックで閉じること。
+- [ ] 単発表示時に `Esc` または `Enter` キーを押すと即座にウィンドウが閉じて終了すること。
+- [ ] 単発表示時に下部ボタン `[✕ 閉じる (Esc / Enter)]` クリックで閉じること。
+- [ ] `--interval 10s` 指定時、`Enter`（または「✓ 今回閉じる」ボタン）で次回待機へ移行すること。
+- [ ] `--interval 10s` 指定時、`Esc`（または「✕ 中止」ボタン）で定期実行を中止して完全終了すること。
 - [ ] 日本語文字が文字化けせず綺麗に描画されること。
 
 ### 2.3 オプション機能検証

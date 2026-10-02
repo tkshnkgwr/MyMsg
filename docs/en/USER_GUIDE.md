@@ -95,10 +95,11 @@ MyMsg "Quick Status Check" --timeout 5 --show-progress -i ok
 ### Recurring & Scheduled Reminders
 ```powershell
 # Repeat notification every 30 minutes (immediate 1st popup, max 3 times)
+# Note: Press Enter (or [✓ 今回閉じる]) to wait for next, Esc (or [✕ 中止]) to abort and exit
 MyMsg "Posture check and hydration reminder" --interval 30m --immediate --count 3 -i info
 
-# Designated times of day
-MyMsg "Standup meeting starting" --at 09:30,13:00,17:00 -i warn
+# Designated time of day (single run, exits cleanly on Esc/Enter)
+MyMsg "Standup meeting starting" --at 15:00 -i warn
 ```
 
 ### Clipboard Copy, Custom Actions & Logging

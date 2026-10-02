@@ -48,13 +48,13 @@ pub struct MyMsgApp {
     pub start_time: Instant,
     /// 定期実行インターバル秒数
     pub interval_secs: Option<u64>,
-    /// 複数時刻スケジュールリスト
-    pub schedule_times: Vec<chrono::NaiveTime>,
+    /// スケジュール時刻
+    pub schedule_time: Option<chrono::NaiveTime>,
     /// 最大通知回数（0で無制限）
     pub max_count: u64,
     /// 現在の通知回数（1始まり）
     pub current_count: u64,
-    /// 完全終了フラグ（Shift+Esc等でセット）
+    /// 完全終了フラグ（Escキー押下や「✕ 中止」ボタンクリック等でセット）
     pub should_exit_all: std::sync::Arc<std::sync::atomic::AtomicBool>,
     /// クローズ処理済みフラグ（二重ログ防止）
     pub is_closing: bool,
@@ -83,7 +83,7 @@ impl MyMsgApp {
             .interval
             .as_deref()
             .and_then(crate::cli::parse_interval_to_seconds);
-        let schedule_times = crate::cli::parse_at_times(&args.at);
+        let schedule_time = args.at.as_deref().and_then(crate::cli::parse_at_time);
 
         if let Some(ref path) = args.log {
             append_log(
@@ -118,7 +118,7 @@ impl MyMsgApp {
             action_feedback_until: None,
             start_time: Instant::now(),
             interval_secs,
-            schedule_times,
+            schedule_time,
             max_count: args.count,
             current_count,
             should_exit_all,
@@ -126,12 +126,12 @@ impl MyMsgApp {
         }
     }
 
-    /// 次のスケジュール（定期実行・予定時刻）が存在するか判定します。
+    /// 次のスケジュール（定期実行インターバル）が存在するか判定します。
     pub fn has_next_schedule(&self) -> bool {
         if self.max_count > 0 && self.current_count >= self.max_count {
             return false;
         }
-        self.interval_secs.is_some() || !self.schedule_times.is_empty()
+        self.interval_secs.is_some()
     }
 
     /// クローズ時のログ記録
@@ -154,21 +154,28 @@ impl MyMsgApp {
 
 impl eframe::App for MyMsgApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Shift + Esc / Shift + Enter で定期実行を完全に終了
+        // キー入力による終了・クローズ処理
         let is_shift = ctx.input(|i| i.modifiers.shift);
-        if is_shift
-            && ctx.input(|i| i.key_pressed(egui::Key::Escape) || i.key_pressed(egui::Key::Enter))
-        {
+        let has_next = self.has_next_schedule();
+
+        // Esc: 定期実行中であっても中止してプロセスを完全終了
+        if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
             self.should_exit_all
                 .store(true, std::sync::atomic::Ordering::SeqCst);
-            self.record_close("Shift+(Escape/Enter)");
+            let reason = if is_shift { "Shift+Escape" } else { "Escape" };
+            self.record_close(reason);
             ctx.send_viewport_cmd(ViewportCommand::Close);
             return;
         }
 
-        // Esc または Enter で今回の通知を閉じる
-        if ctx.input(|i| i.key_pressed(egui::Key::Escape) || i.key_pressed(egui::Key::Enter)) {
-            self.record_close("Escape/Enter");
+        // Enter: 次回がある場合は「今回閉じて次回待機」、次回がない場合は「完全終了」
+        if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
+            if !has_next {
+                self.should_exit_all
+                    .store(true, std::sync::atomic::Ordering::SeqCst);
+            }
+            let reason = if is_shift { "Shift+Enter" } else { "Enter" };
+            self.record_close(reason);
             ctx.send_viewport_cmd(ViewportCommand::Close);
             return;
         }
@@ -356,46 +363,76 @@ impl eframe::App for MyMsgApp {
                             }
                         }
 
-                        // 閉じるボタン
+                        // 閉じる・操作ボタン
                         let has_next = self.has_next_schedule();
-                        let btn_label = if has_next {
-                            if self.max_count > 0 {
+                        if has_next {
+                            // 1. 今回閉じるボタン (Enter) - 右端
+                            let next_label = if self.max_count > 1 {
                                 format!(
-                                    "✕ 今回閉じる ({}/{}回) [Esc]",
+                                    "✓ 今回閉じる ({}/{}回) [Enter]",
                                     self.current_count, self.max_count
                                 )
+                            } else if self.max_count == 1 {
+                                "✓ 今回閉じる [Enter]".to_string()
                             } else {
-                                format!("✕ 今回閉じる ({}回目) [Esc]", self.current_count)
+                                format!("✓ 今回閉じる ({}回目) [Enter]", self.current_count)
+                            };
+
+                            let next_btn = ui.add(
+                                egui::Button::new(
+                                    RichText::new(next_label)
+                                        .size(11.0_f32)
+                                        .color(palette.button_text),
+                                )
+                                .fill(palette.button_bg)
+                                .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                                .rounding(4.0_f32),
+                            );
+
+                            if next_btn.clicked() {
+                                self.record_close("NextWaitButton");
+                                ctx.send_viewport_cmd(ViewportCommand::Close);
+                            }
+
+                            // 2. 中止ボタン (Esc) - 次回閉じるボタンの左隣
+                            let abort_btn = ui.add(
+                                egui::Button::new(
+                                    RichText::new("✕ 中止 [Esc]")
+                                        .size(11.0_f32)
+                                        .color(palette.button_text),
+                                )
+                                .fill(palette.button_bg)
+                                .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                                .rounding(4.0_f32),
+                            );
+
+                            if abort_btn.clicked() {
+                                self.should_exit_all
+                                    .store(true, std::sync::atomic::Ordering::SeqCst);
+                                self.record_close("AbortButton");
+                                ctx.send_viewport_cmd(ViewportCommand::Close);
                             }
                         } else {
-                            "✕ 閉じる (Esc / Enter)".to_string()
-                        };
+                            // 単発通知 / 最終回: 閉じるボタン1つ
+                            let close_btn = ui.add(
+                                egui::Button::new(
+                                    RichText::new("✕ 閉じる (Esc / Enter)")
+                                        .size(11.0_f32)
+                                        .color(palette.button_text),
+                                )
+                                .fill(palette.button_bg)
+                                .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
+                                .rounding(4.0_f32),
+                            );
 
-                        let close_btn = ui.add(
-                            egui::Button::new(
-                                RichText::new(btn_label)
-                                    .size(11.0_f32)
-                                    .color(palette.button_text),
-                            )
-                            .fill(palette.button_bg)
-                            .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                            .rounding(4.0_f32),
-                        );
-
-                        if close_btn.clicked() {
-                            self.record_close("CloseButton");
-                            ctx.send_viewport_cmd(ViewportCommand::Close);
+                            if close_btn.clicked() {
+                                self.should_exit_all
+                                    .store(true, std::sync::atomic::Ordering::SeqCst);
+                                self.record_close("CloseButton");
+                                ctx.send_viewport_cmd(ViewportCommand::Close);
+                            }
                         }
                     });
-
-                    if self.has_next_schedule() {
-                        ui.add_space(2.0_f32);
-                        ui.label(
-                            RichText::new("完全終了: Shift+Esc")
-                                .size(10.0_f32)
-                                .color(Color32::from_gray(140)),
-                        );
-                    }
                 });
             });
 
@@ -469,5 +506,65 @@ impl eframe::App for MyMsgApp {
                         });
                     });
             });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveTime;
+
+    #[test]
+    fn test_has_next_schedule() {
+        let should_exit = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let mut app = MyMsgApp {
+            message: "test".to_string(),
+            custom_text_color: None,
+            custom_bg_color: None,
+            theme_mode: crate::cli::ThemeMode::System,
+            icon: None,
+            font_id: FontId::default(),
+            font_size: 16.0,
+            blink: false,
+            timeout_secs: 0,
+            show_progress: false,
+            log_path: None,
+            copy_enabled: false,
+            copied_feedback_until: None,
+            action_cmd: None,
+            action_feedback_until: None,
+            start_time: Instant::now(),
+            interval_secs: None,
+            schedule_time: None,
+            max_count: 0,
+            current_count: 1,
+            should_exit_all: should_exit,
+            is_closing: false,
+        };
+
+        // 通常起動（スケジュールなし）
+        assert!(!app.has_next_schedule());
+
+        // 時刻指定（--at 15:00）: 単発通知のため次回なし
+        app.schedule_time = Some(NaiveTime::from_hms_opt(15, 0, 0).unwrap());
+        assert!(!app.has_next_schedule());
+
+        // interval 指定（--interval 30m）: 次回あり
+        app.schedule_time = None;
+        app.interval_secs = Some(1800);
+        assert!(app.has_next_schedule());
+
+        // 最大回数に達した場合: 次回なし
+        app.max_count = 1;
+        assert!(!app.has_next_schedule());
+
+        // 複数回カウントの進行検証（例: max_count = 3）
+        app.max_count = 3;
+        app.current_count = 1;
+        assert!(app.has_next_schedule()); // 1回目: 次回あり
+        app.current_count = 2;
+        assert!(app.has_next_schedule()); // 2回目: 次回あり
+        app.current_count = 3;
+        assert!(!app.has_next_schedule()); // 3回目（最終回）: 次回なし
     }
 }

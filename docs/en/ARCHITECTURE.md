@@ -75,7 +75,7 @@ pub struct CliArgs {
     pub timeout: u64,
     pub toast: bool,
     pub interval: Option<String>,
-    pub at: Vec<String>,
+    pub at: Option<String>,
     pub count: u64,
     pub immediate: bool,
     pub show_progress: bool,
@@ -105,8 +105,14 @@ pub struct MyMsgApp {
     pub copy_enabled: bool,
     pub copied_feedback_until: Option<Instant>,
     pub action_cmd: Option<String>,
-    pub action_feedback: Option<(Instant, String, bool)>,
+    pub action_feedback_until: Option<(Instant, bool)>,
     pub start_time: Instant,
+    pub interval_secs: Option<u64>,
+    pub schedule_time: Option<chrono::NaiveTime>,
+    pub max_count: u64,
+    pub current_count: u64,
+    pub should_exit_all: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    pub is_closing: bool,
 }
 ```
 
@@ -118,12 +124,13 @@ pub struct MyMsgApp {
 `egui` re-evaluates UI definitions on every frame triggered by events:
 
 1. **Input & Dismissal Phase**:
-   - Intercepts `Escape` and `Enter` key presses, instantly issuing `ViewportCommand::Close`.
-   - If `timeout_secs > 0` and elapsed time reaches the threshold, `ViewportCommand::Close` is emitted automatically.
+   - `Escape` key press (or clicking `[✕ 中止]` button): Sets `should_exit_all` to `true` and cleanly terminates the process, even during recurring intervals.
+   - `Enter` key press (or clicking `[✓ 今回閉じる]` button): Dismisses current notification and proceeds to the next scheduled interval without setting `should_exit_all`. Exits process if no future schedule remains.
+   - If `timeout_secs > 0` and elapsed time reaches threshold, emits `ViewportCommand::Close` (progresses to next schedule if interval is active).
 2. **Blink Animation Phase**:
    If `blink == true`, computes opacity phase from `start_time.elapsed()` and requests low-power repaints via `ctx.request_repaint_after(Duration::from_millis(250))`.
 3. **Panel Layout Phase**:
-   Applies slim framing margins in `egui::CentralPanel` to render centered text and the bottom action bar.
+   Applies slim framing margins in `egui::CentralPanel` to render centered text and bottom action bar buttons (copy, action, dismiss/abort).
 
 ---
 

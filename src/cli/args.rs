@@ -191,23 +191,24 @@ pub struct CliArgs {
         long_help = "指定間隔ごとに繰り返し通知を表示する定期実行タイマー。\n\
                      ・秒数指定: 300, 1800, 3600\n\
                      ・単位指定: 30s (秒), 30m (分), 1h (時間), 30分, 1時間\n\
-                     ・終了操作: Esc / Enter / 閉じるボタンで「今回閉じて次回待機」、Shift+Esc で「完全終了」。\n\
+                     ・終了操作: Enter / 「✓ 今回閉じる」で次回待機、Esc / 「✕ 中止」で定期実行を中止して完全終了。\n\
                      ・--immediate を併用すると初回待機をスキップして即時1回目を表示します。"
     )]
     pub interval: Option<String>,
 
-    /// 複数時刻・スケジュール指定（カンマ区切りまたは複数指定、例: 09:00,12:00,15:00）
+    /// 指定時刻・スケジュール指定（例: 09:00, 15:30）
     #[arg(
         long = "at",
         visible_alias = "schedule",
-        value_delimiter = ',',
-        help = "指定時刻（複数可）に通知を表示 [例: 09:00,12:00,15:00]",
-        long_help = "1日の中の特定時刻（複数指定可）に通知を表示するスケジュール機能。\n\
-                     ・指定例: --at 09:00,12:00,15:00 または --at 09:00 --at 12:00\n\
+        value_name = "TIME",
+        help = "指定時刻に通知を表示 [例: 09:00, 15:30]",
+        long_help = "指定時刻（1時刻のみ）に通知を表示するスケジュール機能。\n\
+                     ・指定例: --at 09:00 または --at 15:30:00\n\
                      ・書式: HH:MM または HH:MM:SS (24時間制)\n\
-                     本日の未来の時刻を順次待機・表示し、当日分が終わると翌日先頭時刻へ自動ループします。"
+                     ・指定時刻に1回通知を表示し、Enter / Esc / 閉じるボタンで完全終了します。\n\
+                     ・複数時刻の指定には対応していません。"
     )]
-    pub at: Vec<String>,
+    pub at: Option<String>,
 
     /// 最大通知回数（0で無制限ループ）
     #[arg(
@@ -215,7 +216,7 @@ pub struct CliArgs {
         visible_alias = "times",
         default_value_t = 0,
         help = "定期実行時の最大通知回数（0で無制限）",
-        long_help = "定期実行（--interval / --at）時の最大通知回数。\n\
+        long_help = "定期実行（--interval）時の最大通知回数。\n\
                      0 を指定すると無制限にループします（既定値: 0）。\n\
                      指定回数通知するとプロセスが自動的に完全終了します。"
     )]
@@ -302,6 +303,8 @@ mod tests {
             "--action",
             "calc.exe",
             "--sound",
+            "--at",
+            "15:30",
         ])
         .unwrap();
 
@@ -312,5 +315,25 @@ mod tests {
         assert!(args.copy);
         assert_eq!(args.action.as_deref(), Some("calc.exe"));
         assert!(args.sound);
+        assert_eq!(args.at.as_deref(), Some("15:30"));
+    }
+
+    #[test]
+    fn test_cli_args_parsing_recurring() {
+        let args = CliArgs::try_parse_from([
+            "mymsg",
+            "リピート通知",
+            "--interval",
+            "30m",
+            "--count",
+            "3",
+            "--immediate",
+        ])
+        .unwrap();
+
+        assert_eq!(args.message_arg.as_deref(), Some("リピート通知"));
+        assert_eq!(args.interval.as_deref(), Some("30m"));
+        assert_eq!(args.count, 3);
+        assert!(args.immediate);
     }
 }

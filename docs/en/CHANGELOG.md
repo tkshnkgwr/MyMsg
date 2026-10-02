@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed & Improved
+- **Intuitive Dismissal & Abort Flow for Recurring Notifications (`--interval`)**:
+  - Pressing `Enter` (or clicking `[✓ 今回閉じる]`) cleanly dismisses the current notification and proceeds to the next scheduled interval wait.
+  - Pressing `Escape` (or clicking `[✕ 中止]`) immediately aborts the recurring loop and cleanly terminates the process.
+  - Dynamically renders dual action buttons (`[✓ 今回閉じる ({}/{}回) [Enter]]` and `[✕ 中止 [Esc]]`) in the bottom panel during active recurring schedules.
+- **Simplified Scheduled Notification (`--at`) & Input Validation**:
+  - Replaced multi-schedule loops with single-time schedule semantics (`Option<String>`).
+  - Added strict input validation to immediately reject comma-separated multiple times or malformed time formats with clean user-facing error messages (Exit code 1).
+- **Windows Message Pump Flush**:
+  - Dispatches and removes lingering OS messages (`PeekMessageW` / `TranslateMessage` / `DispatchMessageW`) following window dismissal to eliminate phantom events.
+
+### Documentation
+- **UPX Startup Latency Warning (`RELEASE.md`)**:
+  - Documented startup decompression latency and antivirus false-positive considerations.
+- **High-Precision Benchmark Metrics (`FOOTPRINTS.md`)**:
+  - Added benchmark results and reproducible CLI invocations using `hyperfine`.
+
 ---
 
 ## [1.3.0] - 2026-09-29

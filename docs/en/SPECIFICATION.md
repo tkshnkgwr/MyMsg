@@ -46,7 +46,7 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 | `--timeout`         | -     | `u64`        | `0`                 | Auto-dismiss timer in seconds (0 to disable).                             |
 | `--toast`           | `-T`  | `bool`       | `false`             | OS native toast notification mode (no GUI window, immediate exit).        |
 | `--interval`        | -     | `String`     | None                | Repeat interval (`30m`, `1h`, `300`). Alias: `--every`.                   |
-| `--at`              | -     | `Vec<String>`| None                | Scheduled times of day (`09:00,12:00,15:00`). Alias: `--schedule`.        |
+| `--at`              | -     | `String`     | None                | Scheduled time of day (`15:00`, single only). Alias: `--schedule`.         |
 | `--count`           | -     | `u64`        | `0`                 | Maximum notifications (0 for unlimited loop). Alias: `--times`.           |
 | `--immediate`       | -     | `bool`       | `false`             | Display 1st notification immediately without initial interval wait.       |
 | `--show-progress`   | -     | `bool`       | `false`             | Render countdown progress bar during timeout. Alias: `--progress`.        |
@@ -251,14 +251,16 @@ When `--sound` (or alias `--beep`) is enabled:
 
 ## 16. User Interaction & Dismissal Conditions
 
-| Action / Trigger | Behavior | Exit Code |
-| :--- | :--- | :---: |
-| **`Esc` Key Press** | Immediately closes window and terminates process | `0` |
-| **`Enter` Key Press** | Immediately closes window and terminates process | `0` |
-| **Click `[✕ 閉じる (Esc / Enter)]`** | Immediately closes window and terminates process | `0` |
-| **Window Frame `✕` Close Button** | Standard window dismissal and process exit | `0` |
-| **`--timeout` Expired** | Automatically closes window after specified seconds | `0` |
-| **`--toast` Dispatched** | Exits immediately after notification dispatch | `0` |
+| Action / Trigger                    | Single Run / `--at` Behavior         | Recurring Run (`--interval`)        | Exit Code |
+| :---------------------------------- | :----------------------------------- | :---------------------------------- | :--------: |
+| **`Enter` Key Press**               | Closes window and terminates process | Dismisses current and waits next    |    `0`    |
+| **`Esc` Key Press**                 | Closes window and terminates process | Aborts schedule and terminates      |    `0`    |
+| **Click `[✓ 今回閉じる (Enter)]`**  | (Not shown during single runs)       | Dismisses current and waits next    |    `0`    |
+| **Click `[✕ 中止 [Esc]]`**          | (Not shown during single runs)       | Aborts schedule and terminates      |    `0`    |
+| **Click `[✕ 閉じる]`**              | Closes window and terminates process | (Only shown on single / final)      |    `0`    |
+| **Window Frame `✕` Close Button**   | Standard window dismissal & exit     | Aborts schedule and terminates      |    `0`    |
+| **`--timeout` Expired**             | Automatically closes window and exit | Auto-dismisses and waits next       |    `0`    |
+| **`--toast` Dispatched**            | Exits immediately after dispatch     | Dispatches and waits next           |    `0`    |
 
 ---
 

@@ -20,8 +20,8 @@ This document tracks completed implementation milestones and the future enhancem
 - [x] **Explicit Monitor Selection (`--monitor <cursor|primary|0|1...>`)**: Explicitly target screens by keyword (`primary`) or display index.
 - [x] **Auto-Dismiss Timer (`--timeout <seconds>`)**: Automatically close popup after a given duration without keypress.
 - [x] **OS Native Toast Notification Mode (`--toast` / `-T`)**: Dispatches desktop notifications to OS notification center without spawning a GUI window.
-- [x] **Interval / Recurring Notifications (`--interval <duration>` / `--every <duration>`)**: Repeat/cycle notifications at fixed intervals (e.g. `30m`, `1h`) with `--count` limit and `--immediate` skip.
-- [x] **Multiple Scheduled Times (`--at <HH:MM,...>` / `--schedule`)**: Specify multiple exact times of day (comma-separated or multiple flags) to trigger messages sequentially.
+- [x] **Interval / Recurring Notifications (`--interval <duration>` / `--every <duration>`)**: Repeat/cycle notifications at fixed intervals (Enter for next wait, Esc to abort, `--count` limit and `--immediate` skip).
+- [x] **Scheduled Time (`--at <HH:MM>` / `--schedule`)**: Specify exact time of day to trigger notification (single run, exits cleanly on Esc/Enter).
 - [x] **Timeout Progress & Countdown (`--show-progress`)**: Render an animated visual countdown progress bar and remaining seconds for auto-dismissing timeouts.
 - [x] **Clipboard Copy / Custom Action Buttons (`--copy`, `--action <cmd>`)**: Actionable buttons inside the popup to copy text to clipboard (with feedback) and execute external commands.
 - [x] **Logging to File (`--log <file>`)**: Append invocation timestamps, popup counts, dismiss reasons, and action execution logs to a specified file.

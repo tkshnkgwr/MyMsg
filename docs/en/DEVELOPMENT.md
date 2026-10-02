@@ -77,3 +77,19 @@ cargo clippy -- -D warnings
   Verify that `%WINDIR%\Fonts\meiryo.ttc` or `msgothic.ttc` is present and accessible.
 - **`--help` Not Displaying in Console**:
   Ensure `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]` is not present in `src/main.rs`.
+
+---
+
+## 6. Performance Benchmarking
+
+After generating a release build, measure execution latency and startup overhead using [`hyperfine`](https://github.com/sharkdp/hyperfine):
+
+```bash
+# Build release binary
+cargo build --release
+
+# Measure execution latency with cache warmup
+hyperfine --warmup 3 "target/release/MyMsg.exe -V"
+hyperfine --warmup 3 "target/release/MyMsg.exe --help"
+hyperfine --warmup 3 "target/release/MyMsg.exe --toast -m 'bench'"
+```

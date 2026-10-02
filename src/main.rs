@@ -15,7 +15,7 @@
 //! - **テーマ切り替え**: `--theme <system|dark|light>` でシステム自動追従またはダーク/ライト固定。
 //! - **柔軟なカラー指定**: `Red`, `bule`(typo補正), `g`, `#00E5FF` など直感的なカラー名や略称に対応。
 //! - **タイマー/遅延通知**: `--delay <秒>` で指定秒数待機後に最前面表示（待機中はGUI非生成で負荷ゼロ）。
-//! - **定期実行 & スケジュール**: `--interval <間隔>` や `--at <時刻,...>` による繰り返し通知と指定時刻スケジュール。
+//! - **定期実行 & スケジュール**: `--interval <間隔>` による定期リピート通知や `--at <時刻>` による指定時刻スケジュール。
 //! - **自動消去 & プログレスバー**: `--timeout <秒>` による自動終了と `--show-progress` による残り時間カウントダウン。
 //! - **クリップボードコピー & アクション**: `--copy` によるテキストコピーと `--action <cmd>` による外部コマンド実行。
 //! - **ロギング**: `--log <file>` による表示・終了・操作履歴のファイル追記。
@@ -33,8 +33,8 @@ pub mod toast;
 use app::MyMsgApp;
 use clap::Parser;
 use cli::{
-    calculate_next_schedule_wait, calculate_window_dimensions, parse_at_times,
-    parse_delay_to_seconds, parse_interval_to_seconds, parse_monitor_target, CliArgs,
+    calculate_at_wait, calculate_window_dimensions, parse_at_time, parse_delay_to_seconds,
+    parse_interval_to_seconds, parse_monitor_target, CliArgs,
 };
 use eframe::egui::ViewportBuilder;
 use font::setup_japanese_fonts;
@@ -47,6 +47,23 @@ fn main() -> eframe::Result<()> {
     session::auto_detach_console_if_standalone();
 
     let mut args = CliArgs::parse();
+
+    // --at で複数時刻（カンマ区切り等）が渡された場合はエラー終了
+    let schedule_time = if let Some(ref at_str) = args.at {
+        if at_str.contains(',') {
+            eprintln!("MyMsg エラー: --at 引数での複数時刻指定はサポートされていません。1つの時刻（例: --at 15:00）を指定してください。");
+            std::process::exit(1);
+        }
+        match parse_at_time(at_str) {
+            Some(t) => Some(t),
+            None => {
+                eprintln!("MyMsg エラー: --at の時刻書式が無効です。HH:MM または HH:MM:SS 形式で指定してください（指定値: '{at_str}'）。");
+                std::process::exit(1);
+            }
+        }
+    } else {
+        None
+    };
 
     // ヘッドレス / 非対話セッション (Session 0) の検出と自動フォールバック
     if !args.toast && !session::is_interactive_session() {
@@ -68,7 +85,6 @@ fn main() -> eframe::Result<()> {
 
     let delay_secs = parse_delay_to_seconds(&args.delay);
     let interval_secs = args.interval.as_deref().and_then(parse_interval_to_seconds);
-    let schedule_times = parse_at_times(&args.at);
 
     // OS標準トースト通知モード（GUIウィンドウを立ち上げずに定期/即時送信）
     if args.toast {
@@ -78,9 +94,9 @@ fn main() -> eframe::Result<()> {
             let wait_secs = if current_count == 0 {
                 if delay_secs > 0 {
                     delay_secs
-                } else if !schedule_times.is_empty() {
+                } else if let Some(target) = schedule_time {
                     let now = chrono::Local::now().time();
-                    calculate_next_schedule_wait(now, &schedule_times).unwrap_or(0)
+                    calculate_at_wait(now, target)
                 } else if let Some(int_secs) = interval_secs {
                     if args.immediate {
                         0
@@ -92,9 +108,6 @@ fn main() -> eframe::Result<()> {
                 }
             } else if let Some(int_secs) = interval_secs {
                 int_secs
-            } else if !schedule_times.is_empty() {
-                let now = chrono::Local::now().time();
-                calculate_next_schedule_wait(now, &schedule_times).unwrap_or(0)
             } else {
                 break;
             };
@@ -134,15 +147,15 @@ fn main() -> eframe::Result<()> {
                 break;
             }
 
-            // スケジュール設定がない場合は1回で終了
-            if interval_secs.is_none() && schedule_times.is_empty() {
+            // interval がない場合は1回で終了（単発または --at 指定時）
+            if interval_secs.is_none() {
                 break;
             }
         }
         return Ok(());
     }
 
-    // GUIモードの表示ループ（初回遅延・インターバル・時刻スケジュール・最大回数）
+    // GUIモードの表示ループ（初回遅延・インターバル・指定時刻・最大回数）
     let should_exit_all = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
     let mut current_count = 0u64;
 
@@ -150,9 +163,9 @@ fn main() -> eframe::Result<()> {
         let wait_secs = if current_count == 0 {
             if delay_secs > 0 {
                 delay_secs
-            } else if !schedule_times.is_empty() {
+            } else if let Some(target) = schedule_time {
                 let now = chrono::Local::now().time();
-                calculate_next_schedule_wait(now, &schedule_times).unwrap_or(0)
+                calculate_at_wait(now, target)
             } else if let Some(int_secs) = interval_secs {
                 if args.immediate {
                     0
@@ -164,9 +177,6 @@ fn main() -> eframe::Result<()> {
             }
         } else if let Some(int_secs) = interval_secs {
             int_secs
-        } else if !schedule_times.is_empty() {
-            let now = chrono::Local::now().time();
-            calculate_next_schedule_wait(now, &schedule_times).unwrap_or(0)
         } else {
             break;
         };
@@ -230,6 +240,20 @@ fn main() -> eframe::Result<()> {
             break;
         }
 
+        #[cfg(windows)]
+        {
+            unsafe {
+                use windows_sys::Win32::UI::WindowsAndMessaging::{
+                    DispatchMessageW, PeekMessageW, TranslateMessage, MSG, PM_REMOVE,
+                };
+                let mut msg: MSG = std::mem::zeroed();
+                while PeekMessageW(&mut msg, 0, 0, 0, PM_REMOVE) != 0 {
+                    TranslateMessage(&msg);
+                    DispatchMessageW(&msg);
+                }
+            }
+        }
+
         if should_exit_all.load(std::sync::atomic::Ordering::SeqCst) {
             break;
         }
@@ -239,7 +263,8 @@ fn main() -> eframe::Result<()> {
             break;
         }
 
-        if interval_secs.is_none() && schedule_times.is_empty() {
+        // interval がない場合は1回で終了（単発または --at 指定時）
+        if interval_secs.is_none() {
             break;
         }
     }

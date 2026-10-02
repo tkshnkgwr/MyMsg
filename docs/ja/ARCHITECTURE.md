@@ -75,7 +75,7 @@ pub struct CliArgs {
     pub timeout: u64,
     pub toast: bool,
     pub interval: Option<String>,
-    pub at: Vec<String>,
+    pub at: Option<String>,
     pub count: u64,
     pub immediate: bool,
     pub show_progress: bool,
@@ -105,8 +105,14 @@ pub struct MyMsgApp {
     pub copy_enabled: bool,
     pub copied_feedback_until: Option<Instant>,
     pub action_cmd: Option<String>,
-    pub action_feedback: Option<(Instant, String, bool)>,
+    pub action_feedback_until: Option<(Instant, bool)>,
     pub start_time: Instant,
+    pub interval_secs: Option<u64>,
+    pub schedule_time: Option<chrono::NaiveTime>,
+    pub max_count: u64,
+    pub current_count: u64,
+    pub should_exit_all: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    pub is_closing: bool,
 }
 ```
 
@@ -118,12 +124,13 @@ pub struct MyMsgApp {
 `egui` は毎フレームUI定義を評価する即時モードを採用しています。
 
 1. **入力・タイムアウト判定フェーズ**:
-   - `Escape` または `Enter` キーの押下を検知した場合、直ちに `ViewportCommand::Close` を発行。
-   - `timeout_secs > 0` かつ起動からの経過時間が指定秒数を超過した場合、自動的に `ViewportCommand::Close` を発行。
+   - `Esc` キー押下（または「✕ 中止」ボタンクリック）：定期実行中であっても `should_exit_all` を `true` に設定し、直ちにプロセスを完全終了。
+   - `Enter` キー押下（または「✓ 今回閉じる」ボタンクリック）：次回スケジュール（`--interval` 継続時）がある場合は `should_exit_all` を立てずに今回のみ閉じて次回待機へ移行。次回がない場合は完全終了。
+   - `timeout_secs > 0` かつ起動からの経過時間が指定秒数を超過した場合、自動的に `ViewportCommand::Close` を発行（定期実行時は次回待機へ移行）。
 2. **点滅エフェクト計算フェーズ**:
    `blink == true` の場合、`start_time.elapsed()` から 0.5 秒の明滅判定を行い、`ctx.request_repaint_after(Duration::from_millis(250))` で次回描画を要求。
 3. **パネル描画フェーズ**:
-   `egui::CentralPanel` 内でスリムマージンを適用し、中央揃えでメッセージを描画。下部には閉じるボタンを配置。
+   `egui::CentralPanel` 内でスリムマージンを適用し、中央揃えでメッセージを描画。下部バーにはコピー、アクション、閉じる/中止ボタンを配置。
 
 ---
 

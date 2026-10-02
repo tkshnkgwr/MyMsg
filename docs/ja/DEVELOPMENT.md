@@ -78,3 +78,19 @@ cargo clippy -- -D warnings
   Windows の `%WINDIR%\Fonts\meiryo.ttc` または `msgothic.ttc` がアクセス可能か確認してください。
 - **CLI の `--help` が出力されない場合**:
   `src/main.rs` で `windows_subsystem = "windows"` 属性が有効になっていないか確認してください。
+
+---
+
+## 6. パフォーマンス・ベンチマーク測定
+
+リリースビルド作成後、モダンCLIベンチマークツール [`hyperfine`](https://github.com/sharkdp/hyperfine) を用いて起動時間や実行速度を高精度に測定します。
+
+```bash
+# リリースビルドの生成
+cargo build --release
+
+# ウォームアップ実行（キャッシュ充填）付きでの高精度計測
+hyperfine --warmup 3 "target/release/MyMsg.exe -V"
+hyperfine --warmup 3 "target/release/MyMsg.exe --help"
+hyperfine --warmup 3 "target/release/MyMsg.exe --toast -m 'bench'"
+```

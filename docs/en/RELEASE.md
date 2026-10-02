@@ -34,6 +34,11 @@ Optionally compress the executable using UPX to reduce size by another 30%–60%
 upx --best --lzma target/release/MyMsg.exe
 ```
 
+> [!WARNING]
+> **Caveats with UPX Compression**:
+> - **Decompression latency on launch**: Because the binary decompresses in memory every time it executes, a slight startup latency / sluggishness is introduced. For a CLI notification tool where instant responsiveness is paramount, using the uncompressed release binary is recommended.
+> - **Antivirus false positives**: UPX-compressed binaries may occasionally be falsely flagged by security software (e.g., Windows Defender).
+
 ---
 
 ## 3. Pre-Release Quality Checklist

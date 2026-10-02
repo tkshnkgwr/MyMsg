@@ -65,39 +65,27 @@ pub fn parse_time_str(input: &str) -> Option<NaiveTime> {
     }
 }
 
-/// 複数時刻指定引数（カンマ区切りまたは配列）を解析し、ソート・重複排除された NaiveTime リストを返します。
-pub fn parse_at_times(inputs: &[String]) -> Vec<NaiveTime> {
-    let mut times: Vec<NaiveTime> = Vec::new();
-    for item in inputs {
-        for token in item.split(',') {
-            if let Some(t) = parse_time_str(token) {
-                times.push(t);
-            }
-        }
-    }
-    times.sort();
-    times.dedup();
-    times
-}
-
-/// 基準時刻（now）から、スケジュール時刻リストの中で最も近い次の待機秒数を算出します。
-/// 本日の未来に該当時刻があればその差分秒数、無ければ翌日最初の時刻までの差分秒数を返します。
-pub fn calculate_next_schedule_wait(now: NaiveTime, times: &[NaiveTime]) -> Option<u64> {
-    if times.is_empty() {
+/// 指定時刻文字列（HH:MM または HH:MM:SS）を解析し、NaiveTime を返します。
+/// カンマ等による複数時刻指定は許可されず、None を返します。
+pub fn parse_at_time(input: &str) -> Option<NaiveTime> {
+    let clean = input.trim();
+    if clean.contains(',') {
         return None;
     }
+    parse_time_str(clean)
+}
+
+/// 基準時刻（now）から指定時刻（target）までの待機秒数を算出します。
+/// 本日の未来（1秒以上先）であればその差分秒数、過去であれば翌日同時刻までの秒数を返します。
+pub fn calculate_at_wait(now: NaiveTime, target: NaiveTime) -> u64 {
     let now_secs = now.num_seconds_from_midnight() as i64;
-    // 本日の未来の時刻（1秒以上先）
-    for t in times {
-        let t_secs = t.num_seconds_from_midnight() as i64;
-        if t_secs > now_secs {
-            return Some((t_secs - now_secs) as u64);
-        }
-    }
-    // 本日分が終了している場合は翌日の先頭時刻
-    let first_secs = times[0].num_seconds_from_midnight() as i64;
-    let diff = (86400 + first_secs) - now_secs;
-    Some(diff as u64)
+    let target_secs = target.num_seconds_from_midnight() as i64;
+    let diff = if target_secs > now_secs {
+        target_secs - now_secs
+    } else {
+        (86400 + target_secs) - now_secs
+    };
+    diff as u64
 }
 
 /// 遅延指定文字列（秒数, 単位付き, または HH:MM / HH:MM:SS 時刻）を解析し、待機秒数を返します。
@@ -193,41 +181,42 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_at_times() {
-        let inputs = vec![
-            "12:00,09:00".to_string(),
-            "15:30".to_string(),
-            "invalid".to_string(),
-            "09:00".to_string(), // 重複
-        ];
-        let times = parse_at_times(&inputs);
-        assert_eq!(times.len(), 3);
-        assert_eq!(times[0], NaiveTime::from_hms_opt(9, 0, 0).unwrap());
-        assert_eq!(times[1], NaiveTime::from_hms_opt(12, 0, 0).unwrap());
-        assert_eq!(times[2], NaiveTime::from_hms_opt(15, 30, 0).unwrap());
+    fn test_parse_at_time() {
+        assert_eq!(
+            parse_at_time("15:30"),
+            Some(NaiveTime::from_hms_opt(15, 30, 0).unwrap())
+        );
+        assert_eq!(
+            parse_at_time("09:00:15"),
+            Some(NaiveTime::from_hms_opt(9, 0, 15).unwrap())
+        );
+        // 前後空白トリム
+        assert_eq!(
+            parse_at_time("  15:30  "),
+            Some(NaiveTime::from_hms_opt(15, 30, 0).unwrap())
+        );
+        // 複数時刻（カンマ区切り）は拒絶される
+        assert_eq!(parse_at_time("09:00,12:00"), None);
+        assert_eq!(parse_at_time("invalid"), None);
+        assert_eq!(parse_at_time(""), None);
+        assert_eq!(parse_at_time("25:00"), None); // 24時間を超える無効時刻
+        assert_eq!(parse_at_time("12:60"), None); // 60分以上の無効時刻
     }
 
     #[test]
-    fn test_calculate_next_schedule_wait() {
-        let times = vec![
-            NaiveTime::from_hms_opt(9, 0, 0).unwrap(),
-            NaiveTime::from_hms_opt(12, 0, 0).unwrap(),
-            NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
-        ];
+    fn test_calculate_at_wait() {
+        let target = NaiveTime::from_hms_opt(12, 0, 0).unwrap();
 
-        // 1. 朝8:00 -> 次は 9:00 (1時間 = 3600秒)
-        let now1 = NaiveTime::from_hms_opt(8, 0, 0).unwrap();
-        assert_eq!(calculate_next_schedule_wait(now1, &times), Some(3600));
+        // 1. 午前10:00 -> 12:00 (2時間 = 7200秒)
+        let now1 = NaiveTime::from_hms_opt(10, 0, 0).unwrap();
+        assert_eq!(calculate_at_wait(now1, target), 7200);
 
-        // 2. 昼10:30 -> 次は 12:00 (1時間30分 = 5400秒)
-        let now2 = NaiveTime::from_hms_opt(10, 30, 0).unwrap();
-        assert_eq!(calculate_next_schedule_wait(now2, &times), Some(5400));
+        // 2. 午後14:00 -> 翌日12:00 (10時間 + 12時間 = 22時間 = 79200秒)
+        let now2 = NaiveTime::from_hms_opt(14, 0, 0).unwrap();
+        assert_eq!(calculate_at_wait(now2, target), 79200);
 
-        // 3. 夜20:00 -> 本日の予定終了、次は翌朝 9:00 (4時間 + 9時間 = 13時間 = 46800秒)
-        let now3 = NaiveTime::from_hms_opt(20, 0, 0).unwrap();
-        assert_eq!(calculate_next_schedule_wait(now3, &times), Some(46800));
-
-        // 4. 空のリスト
-        assert_eq!(calculate_next_schedule_wait(now1, &[]), None);
+        // 3. ちょうど12:00 -> 翌日12:00 (24時間 = 86400秒)
+        let now3 = NaiveTime::from_hms_opt(12, 0, 0).unwrap();
+        assert_eq!(calculate_at_wait(now3, target), 86400);
     }
 }
