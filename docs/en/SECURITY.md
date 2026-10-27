@@ -18,7 +18,7 @@ This document describes the security model, offline execution guarantees, input 
 ## 2. Input Validation & Safe Boundaries
 
 - **Delay Bounds Checking (`clamp_delay_seconds`)**:
-  `--delay` values are strictly capped at 3600 seconds (1 hour) to prevent runaway background sleep processes.
+  `--delay` values are strictly capped at 86400 seconds (24 hours) to prevent runaway background sleep processes.
 - **Fallback Color Parsing**:
   Unrecognized color strings fail gracefully to preset safe UI defaults without panicking.
 - **Safe Dynamic Font Loading**:

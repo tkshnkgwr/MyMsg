@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-27
+
+### Fixed & Improved
+- **Synced Delay Safety Cap in Security Policy (`SECURITY.md`)**:
+  - Corrected legacy `--delay` clamp threshold (3600 seconds) to match the actual code implementation (`clamp_delay_seconds`) and specifications (86400 seconds / 24 hours).
+- **Strict Vertical Alignment for Markdown Tables (`SPECIFICATION.md`)**:
+  - Vertically aligned columns and delimiters across positional arguments, icons, themes, window dimensions, color palettes, and monitor placement tables for enhanced plain-text / gVim readability.
+- **Updated Release Tag Example (`RELEASE.md`)**:
+  - Bumped release procedure tag example to current version.
+
 ## [1.4.0] - 2026-10-02
 
 ### Changed & Improved

@@ -24,8 +24,8 @@ Usage: MyMsg.exe [OPTIONS] [MESSAGE]
 
 ### 2.1 Positional Arguments
 
-| Argument | Type | Required | Description |
-| :--- | :--- | :---: | :--- |
+| Argument  | Type   | Required | Description                                          |
+| :-------- | :----- | :------: | :--------------------------------------------------- |
 | `MESSAGE` | String | Optional | Message string to display (1st positional argument). |
 
 ### 2.2 Options & Flags
@@ -87,12 +87,12 @@ graph TD
 
 When `--icon <type>` is specified, a vector symbol icon is rendered on the left side of the message text:
 
-| Keyword | Shorthands / Aliases | Symbol | Default Color |
-| :--- | :--- | :---: | :--- |
-| `info` | `i`, `information` | `ℹ` | `#38BDF8` (Sky Blue) |
-| `warn` | `w`, `warning`, `alert` | `⚠` | `#FBBF24` (Amber / Yellow) |
-| `error` | `e`, `err`, `danger`, `ng` | `✖` | `#F87171` (Light Red) |
-| `ok` | `s`, `k`, `success`, `check` | `✔` | `#4ADE80` (Green) |
+| Keyword | Shorthands / Aliases         | Symbol | Default Color              |
+| :------ | :--------------------------- | :----: | :------------------------- |
+| `info`  | `i`, `information`           |  `ℹ`   | `#38BDF8` (Sky Blue)       |
+| `warn`  | `w`, `warning`, `alert`      |  `⚠`   | `#FBBF24` (Amber / Yellow) |
+| `error` | `e`, `err`, `danger`, `ng`   |  `✖`   | `#F87171` (Light Red)      |
+| `ok`    | `s`, `k`, `success`, `check` |  `✔`   | `#4ADE80` (Green)          |
 
 ---
 
@@ -100,11 +100,11 @@ When `--icon <type>` is specified, a vector symbol icon is rendered on the left 
 
 `--theme` configures the cohesive visual palette:
 
-| Theme | Behavior | Default Background | Default Text | Button Background |
-| :--- | :--- | :---: | :---: | :---: |
-| `system` (Default) | Automatically tracks OS light/dark mode | OS Dark/Light | OS Dark/Light | OS Dark/Light |
-| `dark` (`d`) | Pinned Dark Mode | `#1A1B26` | `#F0F0F0` | `#2D3041` |
-| `light` (`l`) | Pinned Light Mode | `#F8FAFC` | `#0F172A` | `#E2E8F0` |
+| Theme              | Behavior                                | Default Background | Default Text | Button Background |
+| :----------------- | :-------------------------------------- | :----------------: | :----------: | :---------------: |
+| `system` (Default) | Automatically tracks OS light/dark mode |   OS Dark/Light    | OS Dark/Light|   OS Dark/Light   |
+| `dark` (`d`)       | Pinned Dark Mode                        |     `#1A1B26`      |  `#F0F0F0`   |     `#2D3041`     |
+| `light` (`l`)      | Pinned Light Mode                       |     `#F8FAFC`      |  `#0F172A`   |     `#E2E8F0`     |
 
 > [!NOTE]
 > Explicitly specified `--color` or `--bg-color` overrides the theme default colors.
@@ -130,11 +130,11 @@ When running in multi-display setups, the popup window position is determined as
 
 Window dimensions and default font size are computed based on `--size` (`-s`) and `--font-size`:
 
-| Size Preset | Matched Keywords | Width | Height | Default Font Size |
-| :--- | :--- | :---: | :---: | :---: |
-| **Small** | `small`, `s` | 300.0 px | 150.0 px | 20.0 pt |
-| **Medium** (Default) | `medium`, any other | 450.0 px | 220.0 px | 26.0 pt |
-| **Large** | `large`, `l` | 650.0 px | 350.0 px | 36.0 pt |
+| Size Preset          | Matched Keywords    |  Width   |  Height  | Default Font Size |
+| :------------------- | :------------------ | :------: | :------: | :---------------: |
+| **Small**            | `small`, `s`        | 300.0 px | 150.0 px |      20.0 pt      |
+| **Medium** (Default) | `medium`, any other | 450.0 px | 220.0 px |      26.0 pt      |
+| **Large**            | `large`, `l`        | 650.0 px | 350.0 px |      36.0 pt      |
 
 > [!NOTE]
 > When `--font-size <pt>` is explicitly provided, it overrides the preset's default font size while preserving the preset window dimensions.
@@ -147,18 +147,18 @@ The `--color` and `--bg-color` options accept case-insensitive color inputs:
 
 ### 8.1 Named Colors & 1-Character Abbreviations
 
-| Color Name | 1-Char Shorthand | Japanese Name | Typo Auto-Correct | RGB Value (HEX) |
-| :--- | :---: | :---: | :---: | :--- |
-| `red` | `r` | `赤` | - | `#EF4444` (239, 68, 68) |
-| `green` | `g` | `緑` | - | `#22C55E` (34, 197, 94) |
-| `blue` | `b` | `青` | `bule` | `#3B82F6` (59, 130, 246) |
-| `yellow` | `y` | `黄` | - | `#EAB308` (234, 179, 8) |
-| `orange` | `o` | - | - | `#F97316` (249, 115, 22) |
-| `purple` | `p` | - | - | `#A855F7` (168, 85, 247) |
-| `cyan` | `c` | - | - | `#06B6D4` (6, 182, 212) |
-| `pink` / `magenta` | `m` | - | - | `#EC4899` (236, 72, 153) |
-| `white` | `w` | `白` | - | `#FFFFFF` (255, 255, 255) |
-| `black` | `k` | `黒` | - | `#0A0A0F` (10, 10, 15) |
+| Color Name         | 1-Char Shorthand | Japanese Name | Typo Auto-Correct | RGB Value (HEX)          |
+| :----------------- | :--------------: | :-----------: | :---------------: | :----------------------- |
+| `red`              |       `r`        |     `赤`      |         -         | `#EF4444` (239, 68, 68)  |
+| `green`            |       `g`        |     `緑`      |         -         | `#22C55E` (34, 197, 94)  |
+| `blue`             |       `b`        |     `青`      |      `bule`       | `#3B82F6` (59, 130, 246) |
+| `yellow`           |       `y`        |     `黄`      |         -         | `#EAB308` (234, 179, 8)  |
+| `orange`           |       `o`        |       -       |         -         | `#F97316` (249, 115, 22) |
+| `purple`           |       `p`        |       -       |         -         | `#A855F7` (168, 85, 247) |
+| `cyan`             |       `c`        |       -       |         -         | `#06B6D4` (6, 182, 212)  |
+| `pink` / `magenta` |       `m`        |       -       |         -         | `#EC4899` (236, 72, 153) |
+| `white`            |       `w`        |     `白`      |         -         | `#FFFFFF` (255, 255, 255)|
+| `black`            |       `k`        |     `黒`      |         -         | `#0A0A0F` (10, 10, 15)   |
 
 ### 8.2 Extended Palette Names
 `lime`, `gold`, `amber`, `emerald`, `teal`, `sky`, `indigo`, `violet`, `rose`, `crimson`, `navy`, `gray` / `grey` / `gray500`, `dark` / `darkgray`, `light` / `lightgray`
@@ -212,11 +212,11 @@ Registered Font Families:
 
 `--monitor <TARGET>` explicitly targets a display screen for popup centering:
 
-| Target Value | Behavior |
-| :--- | :--- |
-| `cursor` (default) / `c`, `mouse`, `active` | Centers popup on the active display containing the mouse cursor |
-| `primary` / `p`, `main` | Centers popup on the primary display work area |
-| `0`, `1`, `2` ... | Centers popup on the display matching the specified enumerated index (falls back to primary if out of range) |
+| Target Value                               | Behavior                                                                                 |
+| :----------------------------------------- | :--------------------------------------------------------------------------------------- |
+| `cursor` (default) / `c`, `mouse`, `active` | Centers popup on the active display containing the mouse cursor                          |
+| `primary` / `p`, `main`                    | Centers popup on the primary display work area                                           |
+| `0`, `1`, `2` ...                          | Centers popup on the display matching the specified enumerated index (falls back to primary if out of range) |
 
 ---
 
