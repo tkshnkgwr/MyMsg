@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-27
+
+### 変更・改善 (Changed & Improved)
+- **ライセンスを GPL-3.0-or-later へ変更**:
+  - オープンソースライセンスを MIT License から GNU General Public License v3.0 or later (GPL-3.0-or-later) へ移行。
+  - `Cargo.toml` の `license` フィールドを `GPL-3.0-or-later` に更新。
+  - CLI バージョン表示（`--version`）のライセンス表記を `GPL-3.0-or-later` に更新。
+
 ## [1.4.1] - 2026-10-27
 
 ### 修正・改善 (Fixed & Improved)

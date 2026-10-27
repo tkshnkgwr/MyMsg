@@ -11,7 +11,7 @@ use clap::Parser;
 #[command(
     name = "mymsg",
     author = "tkshnkgwr",
-    version = concat!("v", env!("CARGO_PKG_VERSION"), "\nCopyright (c) 2026 tkshnkgwr\nLicense: MIT"),
+    version = concat!("v", env!("CARGO_PKG_VERSION"), "\nCopyright (c) 2026 tkshnkgwr\nLicense: GPL-3.0-or-later"),
     about = "最前面メッセージポップアップCLIツール",
     long_about = "低リソース環境向けに最適化された、最前面固定のメッセージポップアップ通知CLIです。EscまたはEnterで即座に閉じられます。"
 )]

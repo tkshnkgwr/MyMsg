@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-27
+
+### Changed & Improved
+- **Relicensed under GPL-3.0-or-later**:
+  - Transitioned the open source license from MIT License to GNU General Public License v3.0 or later (GPL-3.0-or-later).
+  - Configured `license = "GPL-3.0-or-later"` in `Cargo.toml`.
+  - Updated CLI `--version` output metadata to reflect `GPL-3.0-or-later`.
+
 ## [1.4.1] - 2026-10-27
 
 ### Fixed & Improved
