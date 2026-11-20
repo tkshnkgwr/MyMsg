@@ -5,8 +5,8 @@
 **低リソース環境に最適化された、超軽量・最前面固定（Always on Top）メッセージポップアップ通知CLIツール**
 
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Rust 2021/2024](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)](https://www.rust-lang.org)
-[![Version](https://img.shields.io/badge/version-v1.5.0-brightgreen.svg)](Cargo.toml)
+[![Rust 2021](https://img.shields.io/badge/Rust-1.95%2B-orange.svg)](https://www.rust-lang.org)
+[![Version](https://img.shields.io/badge/version-v1.6.0-brightgreen.svg)](Cargo.toml)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/tkshnkgwr/MyMsg)
 
 [English](./README.md) | [日本語](./README_JA.md)
@@ -54,7 +54,7 @@
 ## 🚀 インストール & ビルド
 
 ### 必要要件
-- Rust 1.80 以上 (Cargo)
+- Rust 1.95 以上 (Cargo)
 
 ### ローカルビルド
 ```bash

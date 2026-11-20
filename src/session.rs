@@ -47,7 +47,7 @@ pub fn is_interactive_session() -> bool {
 
         unsafe {
             let hwinsta = GetProcessWindowStation();
-            if hwinsta == 0 {
+            if hwinsta.is_null() {
                 return false;
             }
 
@@ -76,7 +76,7 @@ pub fn is_interactive_session() -> bool {
 
             // 現在のスレッドがアタッチされているデスクトップ名を取得
             let hdesk = GetThreadDesktop(GetCurrentThreadId());
-            if hdesk == 0 {
+            if hdesk.is_null() {
                 return false;
             }
 
@@ -93,7 +93,8 @@ pub fn is_interactive_session() -> bool {
                 return false;
             }
 
-            let name = String::from_utf16_lossy(&desktop_name[..dlen as usize / 2])
+            let u16_len = (dlen as usize / 2).min(desktop_name.len());
+            let name = String::from_utf16_lossy(&desktop_name[..u16_len])
                 .trim_matches('\0')
                 .to_string();
 

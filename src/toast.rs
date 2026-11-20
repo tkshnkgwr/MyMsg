@@ -24,7 +24,8 @@ pub fn send_toast_notification(args: &CliArgs) -> Result<(), Box<dyn std::error:
         .body(&message);
 
     if args.timeout > 0 {
-        notification.timeout(Timeout::Milliseconds((args.timeout * 1000) as u32));
+        let timeout_ms = args.timeout.saturating_mul(1000).min(u32::MAX as u64) as u32;
+        notification.timeout(Timeout::Milliseconds(timeout_ms));
     }
 
     notification.show()?;

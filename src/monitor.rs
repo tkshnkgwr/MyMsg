@@ -7,7 +7,9 @@
 use crate::cli::MonitorTarget;
 
 #[cfg(windows)]
-use windows_sys::Win32::Foundation::{BOOL, LPARAM, POINT, RECT};
+use windows_sys::core::BOOL;
+#[cfg(windows)]
+use windows_sys::Win32::Foundation::{LPARAM, POINT, RECT};
 #[cfg(windows)]
 use windows_sys::Win32::Graphics::Gdi::{
     EnumDisplayMonitors, GetMonitorInfoW, MonitorFromPoint, HDC, HMONITOR, MONITORINFO,
@@ -46,7 +48,7 @@ fn get_all_monitors() -> Vec<MONITORINFO> {
     let mut list: Vec<MONITORINFO> = Vec::new();
     unsafe {
         EnumDisplayMonitors(
-            0,
+            std::ptr::null_mut(),
             std::ptr::null(),
             Some(monitor_enum_proc),
             &mut list as *mut _ as LPARAM,
@@ -89,7 +91,7 @@ pub fn get_monitor_center_position(
                 }
 
                 let h_monitor = MonitorFromPoint(cursor_pos, MONITOR_DEFAULTTONEAREST);
-                if h_monitor == 0 {
+                if h_monitor.is_null() {
                     return get_monitor_center_position(
                         MonitorTarget::Primary,
                         window_width,
@@ -130,7 +132,7 @@ pub fn get_monitor_center_position(
                 // 2. 原点 (0,0) を含むモニター
                 let origin = POINT { x: 0, y: 0 };
                 let h_monitor = MonitorFromPoint(origin, MONITOR_DEFAULTTOPRIMARY);
-                if h_monitor != 0 {
+                if !h_monitor.is_null() {
                     let mut monitor_info = MONITORINFO {
                         cbSize: std::mem::size_of::<MONITORINFO>() as u32,
                         rcMonitor: std::mem::zeroed(),

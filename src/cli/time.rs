@@ -27,7 +27,7 @@ pub fn parse_duration_to_seconds(input: &str) -> Option<u64> {
             .strip_suffix(suffix)
             .and_then(|num_str| num_str.trim().parse::<u64>().ok());
         if let Some(num) = parsed {
-            return Some(num * mult);
+            return num.checked_mul(mult);
         }
     }
     None
@@ -178,6 +178,9 @@ mod tests {
         assert_eq!(parse_interval_to_seconds("30m"), Some(1800));
         assert_eq!(parse_interval_to_seconds("0"), None);
         assert_eq!(parse_interval_to_seconds("0s"), None);
+        // オーバーフロー境界値（u64::MAX / 3600 を超える時間指定はパニックせず None）
+        assert_eq!(parse_duration_to_seconds("999999999999999999h"), None);
+        assert_eq!(parse_interval_to_seconds("999999999999999999h"), None);
     }
 
     #[test]

@@ -4,6 +4,7 @@
 //! 自動検出および `egui::Context` へのフォント定義登録処理を提供します。
 
 use eframe::egui;
+use std::sync::Arc;
 
 /// システムにインストールされた日本語フォントを検出し、eguiのフォント定義に登録します。
 pub fn setup_japanese_fonts(ctx: &egui::Context) {
@@ -26,7 +27,7 @@ pub fn setup_japanese_fonts(ctx: &egui::Context) {
         if let Ok(font_data) = std::fs::read(path) {
             fonts.font_data.insert(
                 "japanese_font".to_owned(),
-                egui::FontData::from_owned(font_data),
+                Arc::new(egui::FontData::from_owned(font_data)),
             );
 
             // Proportionalフォントの最優先として登録
@@ -57,7 +58,7 @@ pub fn setup_japanese_fonts(ctx: &egui::Context) {
         if let Ok(font_data) = std::fs::read(path) {
             fonts.font_data.insert(
                 "japanese_serif".to_owned(),
-                egui::FontData::from_owned(font_data),
+                Arc::new(egui::FontData::from_owned(font_data)),
             );
             fonts.families.insert(
                 egui::FontFamily::Name("serif".into()),
@@ -70,6 +71,34 @@ pub fn setup_japanese_fonts(ctx: &egui::Context) {
     if !serif_loaded {
         fonts.families.insert(
             egui::FontFamily::Name("serif".into()),
+            vec!["japanese_font".to_owned()],
+        );
+    }
+
+    // 強調系（Impact / Bold）フォント候補
+    let impact_candidates = [
+        format!("{windir}\\Fonts\\impact.ttf"),
+        format!("{windir}\\Fonts\\meiryob.ttc"),
+        format!("{windir}\\Fonts\\YuGothB.ttc"),
+    ];
+    let mut impact_loaded = false;
+    for path in &impact_candidates {
+        if let Ok(font_data) = std::fs::read(path) {
+            fonts.font_data.insert(
+                "impact_font".to_owned(),
+                Arc::new(egui::FontData::from_owned(font_data)),
+            );
+            fonts.families.insert(
+                egui::FontFamily::Name("impact".into()),
+                vec!["impact_font".to_owned(), "japanese_font".to_owned()],
+            );
+            impact_loaded = true;
+            break;
+        }
+    }
+    if !impact_loaded {
+        fonts.families.insert(
+            egui::FontFamily::Name("impact".into()),
             vec!["japanese_font".to_owned()],
         );
     }

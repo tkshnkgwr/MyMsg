@@ -53,4 +53,8 @@ This document tracks completed implementation milestones and the future enhancem
 - [ ] **GitHub Actions Matrix**: Automated cross-compilation for Windows, macOS, and Linux.
 - [ ] **Package Manager Distribution**: Submissions to `winget`, `Scoop`, and `Homebrew`.
 
+### Technical Debt & Optimization
+- [x] **Isolate `eframe` to `glow`-only Backend (`Cargo.toml`)**:
+  - Upgraded `eframe` to `0.37` with `default-features = false, features = ["glow", "default_fonts", "clipboard", "wayland", "x11"]`, eliminating `egui-wgpu` / `wgpu` / `accesskit` overhead, and upgraded `windows-sys` to `0.61` while pruning unused features.
+
 

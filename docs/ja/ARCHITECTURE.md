@@ -20,7 +20,7 @@ graph TD
     MonDetect --> WinInit[eframe::run_native: with_position & centered: false]
     WinInit --> FontSetup[setup_japanese_fonts: CJKフォント登録]
     FontSetup --> AppState[MyMsgApp::new 状態生成]
-    AppState --> EventLoop[eframe::App::update イベントループ]
+    AppState --> EventLoop[eframe::App::ui イベントループ]
     EventLoop --> KeyCheck{Esc/Enter押下 または timeout超過?}
     KeyCheck -- Yes --> CloseCmd[ViewportCommand::Close]
     KeyCheck -- No --> Render[egui::CentralPanel & ScrollArea 中央描画]

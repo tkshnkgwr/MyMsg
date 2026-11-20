@@ -19,15 +19,15 @@ This document establishes performance targets and reports real-world benchmark m
 
 ## 2. Benchmark Results (Windows 11 x86_64)
 
-| Metric                          | Measured       | Status  | Notes                                               |
-| :------------------------------ | :------------: | :-----: | :-------------------------------------------------- |
-| **Idle CPU Usage**              | **0.0%**       | ✅ PASS | Event-driven loop sleeps between events             |
-| **Blinking CPU Usage**          | **0.1%–0.3%**  | ✅ PASS | 250ms repaint cadence                               |
-| **Startup Latency (GUI Mode)**  | **~80 ms**     | ✅ PASS | Instant window display                              |
-| **Execution Time (Toast Mode)** | **~15 ms**     | ✅ PASS | Instant toast notification without GUI init         |
-| **RAM Usage (Active GUI)**      | **~24 MB**     | ✅ PASS | Includes loaded font atlas                          |
-| **RAM Usage (Delay Sleep)**     | **~3.2 MB**    | ✅ PASS | Minimal runtime footprint before GUI init           |
-| **Release Binary Size**         | **~5.2 MB**    | ✅ PASS | Optimized Rust 1.80+ release build (`MyMsg.exe`)    |
+| Metric                          | Measured       | Status  | Notes                                                                  |
+| :------------------------------ | :------------: | :-----: | :--------------------------------------------------------------------- |
+| **Idle CPU Usage**              | **0.0%**       | ✅ PASS | Event-driven loop sleeps between events                                |
+| **Blinking CPU Usage**          | **0.1%–0.3%**  | ✅ PASS | 250ms repaint cadence                                                  |
+| **Startup Latency (GUI Mode)**  | **~80 ms**     | ✅ PASS | Instant window display                                                 |
+| **Execution Time (Toast Mode)** | **~15 ms**     | ✅ PASS | Instant toast notification without GUI init                            |
+| **RAM Usage (Active GUI)**      | **~24 MB**     | ✅ PASS | Includes loaded font atlas                                             |
+| **RAM Usage (Delay Sleep)**     | **~3.2 MB**    | ✅ PASS | Minimal runtime footprint before GUI init                              |
+| **Release Binary Size**         | **~6.8 MB**    | ✅ PASS | Rust 1.100.0 / `eframe 0.37` (`glow`-only) release build (`MyMsg.exe`) |
 
 ---
 

@@ -53,4 +53,8 @@
 - [ ] **GitHub Actions 自動ビルド & リリース**: Windows/macOS/Linux 向けマルチプラットフォームクロスコンパイル。
 - [ ] **パッケージマネージャー対応**: `winget`、`Scoop`、`Homebrew` への登録。
 
+### 技術負債解消・軽量化 (Optimization)
+- [x] **`eframe` の依存整理・`glow` 単一化 (`Cargo.toml`)**:
+  - `eframe` を `0.37` へ最新化しつつ `default-features = false, features = ["glow", "default_fonts", "clipboard", "wayland", "x11"]` へ切り替え、`egui-wgpu` / `wgpu` / `accesskit` 等の不要依存を完全排除。併せて `windows-sys` を `0.61` へ最新化・未使用フィーチャーを削減。
+
 

@@ -5,8 +5,8 @@
 **Ultra-lightweight, Always-on-Top popup notification CLI tool optimized for resource-constrained environments.**
 
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
-[![Rust 2021/2024](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)](https://www.rust-lang.org)
-[![Version](https://img.shields.io/badge/version-v1.5.0-brightgreen.svg)](Cargo.toml)
+[![Rust 2021](https://img.shields.io/badge/Rust-1.95%2B-orange.svg)](https://www.rust-lang.org)
+[![Version](https://img.shields.io/badge/version-v1.6.0-brightgreen.svg)](Cargo.toml)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/tkshnkgwr/MyMsg)
 
 [English](./README.md) | [日本語](./README_JA.md)
@@ -54,7 +54,7 @@ With instant start-up, native window pinning, and event-driven rendering (0% CPU
 ## 🚀 Installation & Build
 
 ### Prerequisites
-- Rust 1.80 or later (Cargo)
+- Rust 1.95 or later (Cargo)
 
 ### Local Build
 ```bash

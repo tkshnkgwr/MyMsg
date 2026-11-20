@@ -29,7 +29,10 @@ pub fn calculate_window_dimensions(
         _ => (26.0_f32, (450.0_f32, 220.0_f32)), // medium (既定値)
     };
 
-    let final_font_size = custom_font_size.unwrap_or(default_font_size);
+    let final_font_size = custom_font_size
+        .filter(|fs| fs.is_finite() && *fs > 0.0)
+        .map(|fs| fs.clamp(8.0_f32, 200.0_f32))
+        .unwrap_or(default_font_size);
     (final_font_size, dims)
 }
 
@@ -75,8 +78,24 @@ mod tests {
         assert_eq!(font_l, 36.0);
         assert_eq!((w_l, h_l), (650.0, 350.0));
 
-        // カスタムフォントサイズの優先
+        // カスタムフォントサイズの優先と異常値ガード
         let (custom_font, _) = calculate_window_dimensions("small", Some(48.0));
         assert_eq!(custom_font, 48.0);
+
+        // NaN / Inf / 0 / 負数はデフォルトサイズへ安全にフォールバック
+        let (nan_font, _) = calculate_window_dimensions("medium", Some(f32::NAN));
+        assert_eq!(nan_font, 26.0);
+        let (inf_font, _) = calculate_window_dimensions("medium", Some(f32::INFINITY));
+        assert_eq!(inf_font, 26.0);
+        let (zero_font, _) = calculate_window_dimensions("medium", Some(0.0));
+        assert_eq!(zero_font, 26.0);
+        let (neg_font, _) = calculate_window_dimensions("medium", Some(-10.0));
+        assert_eq!(neg_font, 26.0);
+
+        // 極小・極大値は安全範囲 [8.0, 200.0] にクランプ
+        let (min_font, _) = calculate_window_dimensions("medium", Some(2.0));
+        assert_eq!(min_font, 8.0);
+        let (max_font, _) = calculate_window_dimensions("medium", Some(999.0));
+        assert_eq!(max_font, 200.0);
     }
 }

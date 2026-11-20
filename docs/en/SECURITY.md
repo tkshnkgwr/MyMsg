@@ -11,16 +11,18 @@ This document describes the security model, offline execution guarantees, input 
 - **Unprivileged Execution**:
   Does not require elevated administrative privileges (Administrator or root) to operate.
 - **Memory Safety Guarantee**:
-  Built with safe Rust, mitigating memory corruption, arbitrary buffer overflows, and null-pointer exceptions.
+  Core business logic is written in safe Rust, with `unsafe` blocks strictly isolated to minimal Windows native API bindings (monitor enumeration, session detection, notification chime, and message pump flush).
 
 ---
 
 ## 2. Input Validation & Safe Boundaries
 
-- **Delay Bounds Checking (`clamp_delay_seconds`)**:
-  `--delay` values are strictly capped at 86400 seconds (24 hours) to prevent runaway background sleep processes.
-- **Fallback Color Parsing**:
-  Unrecognized color strings fail gracefully to preset safe UI defaults without panicking.
+- **Delay & Duration Overflow Guard (`clamp_delay_seconds`, `parse_duration_to_seconds`)**:
+  `--delay` values are strictly capped at 86400 seconds (24 hours), and duration unit multipliers use `checked_mul` to prevent integer overflows and runaway sleep processes.
+- **Font Size Boundary Guard (`calculate_window_dimensions`)**:
+  Non-finite (`NaN`, `Infinity`) or non-positive `--font-size` values fall back safely to the preset default, and extreme values are clamped to a safe range (8.0–200.0 pt).
+- **Fallback Color Parsing & Multi-Byte Safety (`parse_color`)**:
+  Unrecognized color strings, malformed HEX codes, and non-ASCII multi-byte inputs fail gracefully to preset safe UI defaults without panicking.
 - **Safe Dynamic Font Loading**:
   Missing system font files or file permission errors are safely handled, falling back to default built-in fonts without crashing.
 

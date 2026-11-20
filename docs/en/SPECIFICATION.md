@@ -111,7 +111,7 @@ When `--icon <type>` is specified, a vector symbol icon is rendered on the left 
 
 ---
 
-## 6. Multi-Monitor & Center Placement Specification (`get_active_monitor_center_position`)
+## 6. Multi-Monitor & Center Placement Specification (`get_monitor_center_position`)
 
 When running in multi-display setups, the popup window position is determined as follows:
 
@@ -149,16 +149,16 @@ The `--color` and `--bg-color` options accept case-insensitive color inputs:
 
 | Color Name         | 1-Char Shorthand | Japanese Name | Typo Auto-Correct | RGB Value (HEX)          |
 | :----------------- | :--------------: | :-----------: | :---------------: | :----------------------- |
-| `red`              |       `r`        |     `赤`      |         -         | `#EF4444` (239, 68, 68)  |
-| `green`            |       `g`        |     `緑`      |         -         | `#22C55E` (34, 197, 94)  |
-| `blue`             |       `b`        |     `青`      |      `bule`       | `#3B82F6` (59, 130, 246) |
-| `yellow`           |       `y`        |     `黄`      |         -         | `#EAB308` (234, 179, 8)  |
-| `orange`           |       `o`        |       -       |         -         | `#F97316` (249, 115, 22) |
-| `purple`           |       `p`        |       -       |         -         | `#A855F7` (168, 85, 247) |
-| `cyan`             |       `c`        |       -       |         -         | `#06B6D4` (6, 182, 212)  |
-| `pink` / `magenta` |       `m`        |       -       |         -         | `#EC4899` (236, 72, 153) |
-| `white`            |       `w`        |     `白`      |         -         | `#FFFFFF` (255, 255, 255)|
-| `black`            |       `k`        |     `黒`      |         -         | `#0A0A0F` (10, 10, 15)   |
+| `red`              |       `r`        |     `赤`      |         -         | `#EF4444` (239, 68, 68)   |
+| `green`            |       `g`        |     `緑`      |      `grean`      | `#22C55E` (34, 197, 94)   |
+| `blue`             |       `b`        |     `青`      |      `bule`       | `#3B82F6` (59, 130, 246)  |
+| `yellow`           |       `y`        |     `黄`      |      `yello`      | `#EAB308` (234, 179, 8)   |
+| `orange`           |       `o`        |       -       |         -         | `#F97316` (249, 115, 22)  |
+| `purple`           |       `p`        |       -       |         -         | `#A855F7` (168, 85, 247)  |
+| `cyan`             |       `c`        |       -       |         -         | `#06B6D4` (6, 182, 212)   |
+| `pink` / `magenta` |       `m`        |       -       |         -         | `#EC4899` (236, 72, 153)  |
+| `white`            |       `w`        |     `白`      |         -         | `#FFFFFF` (255, 255, 255) |
+| `black`            |       `k`        |     `黒`      |         -         | `#0A0A0F` (10, 10, 15)    |
 
 ### 8.2 Extended Palette Names
 `lime`, `gold`, `amber`, `emerald`, `teal`, `sky`, `indigo`, `violet`, `rose`, `crimson`, `navy`, `gray` / `grey` / `gray500`, `dark` / `darkgray`, `light` / `lightgray`
@@ -205,6 +205,7 @@ Registered Font Families:
 - `FontFamily::Proportional`: Prepended as the highest priority font.
 - `FontFamily::Monospace`: Appended as fallback font.
 - `FontFamily::Name("serif")`: Mincho/serif font fallback.
+- `FontFamily::Name("impact")`: Impact/bold emphasis font (`impact.ttf`, `meiryob.ttc`, `YuGothB.ttc`) with Japanese fallback.
 
 ---
 
@@ -272,7 +273,7 @@ When `--sound` (or alias `--beep`) is enabled:
    - Designed as a single-instance popup per process invocation. Multiple concurrent invocations spawn separate isolated OS windows.
 3. **Windows Session 0 Automatic Detection & Fallback**:
    - When launched in non-interactive environments (Windows services, Task Scheduler with "Run whether user is logged on or not", or headless sessions without desktop access), `MyMsg` automatically detects the non-visible window station (`WSF_VISIBLE` flag missing).
-   - Instead of silently failing or blocking, it emits a warning to `stderr` and automatically falls back to OS toast notifications (`--toast`) and logs the fallback event (`[SESSION0] Fallback to Toast`).
+   - Instead of silently failing or blocking, it emits a warning to `stderr` and automatically falls back to OS toast notifications (`--toast`) and logs the fallback event (`Session0Detection: Fallback to Toast`).
    - For direct GUI popups via Task Scheduler, configure the task with "Run only when user is logged on".
 4. **Auto-Dismissal for Periodic Tasks**:
    - When executed via schedulers or automated background jobs, specifying `--timeout <seconds>` or using `--toast` (`-T`) is strongly recommended to prevent orphaned processes and avoid blocking future scheduled triggers.

@@ -73,6 +73,7 @@ impl MyMsgApp {
         let font_family = match args.font.to_lowercase().as_str() {
             "2" | "mono" | "monospace" => FontFamily::Monospace,
             "3" | "serif" => FontFamily::Name("serif".into()),
+            "4" | "impact" => FontFamily::Name("impact".into()),
             _ => FontFamily::Proportional,
         };
         let font_id = FontId::new(font_size, font_family);
@@ -153,7 +154,19 @@ impl MyMsgApp {
 }
 
 impl eframe::App for MyMsgApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = ui.ctx().clone();
+
+        // OSウィンドウの「✕」ボタンによるクローズ要求（定期実行も中止して完全終了）
+        if ctx.input(|i| i.viewport().close_requested()) {
+            if !self.is_closing {
+                self.should_exit_all
+                    .store(true, std::sync::atomic::Ordering::SeqCst);
+                self.record_close("WindowClose");
+            }
+            return;
+        }
+
         // キー入力による終了・クローズ処理
         let is_shift = ctx.input(|i| i.modifiers.shift);
         let has_next = self.has_next_schedule();
@@ -243,13 +256,13 @@ impl eframe::App for MyMsgApp {
         }
 
         // 下部アクションバー（最下部に独立固定配置）
-        egui::TopBottomPanel::bottom("bottom_bar")
+        egui::Panel::bottom("bottom_bar")
             .frame(
-                egui::Frame::none()
+                egui::Frame::NONE
                     .fill(palette.bg_color)
-                    .inner_margin(egui::Margin::symmetric(16.0_f32, 8.0_f32)),
+                    .inner_margin(egui::Margin::symmetric(16, 8)),
             )
-            .show(ctx, |ui| {
+            .show(ui, |ui| {
                 // タイムアウト・プログレス表示 (--show-progress)
                 if self.timeout_secs > 0 && self.show_progress {
                     let total_secs = self.timeout_secs as f32;
@@ -290,11 +303,11 @@ impl eframe::App for MyMsgApp {
                                 )
                                 .fill(palette.button_bg)
                                 .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                                .rounding(4.0_f32),
+                                .corner_radius(4.0_f32),
                             );
 
                             if copy_btn.clicked() {
-                                ctx.output_mut(|o| o.copied_text = self.message.clone());
+                                ctx.copy_text(self.message.clone());
                                 self.copied_feedback_until =
                                     Some(Instant::now() + Duration::from_secs(2));
                                 if let Some(ref path) = self.log_path {
@@ -328,7 +341,7 @@ impl eframe::App for MyMsgApp {
                                 )
                                 .fill(palette.button_bg)
                                 .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                                .rounding(4.0_f32),
+                                .corner_radius(4.0_f32),
                             );
 
                             if action_btn.clicked() {
@@ -386,7 +399,7 @@ impl eframe::App for MyMsgApp {
                                 )
                                 .fill(palette.button_bg)
                                 .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                                .rounding(4.0_f32),
+                                .corner_radius(4.0_f32),
                             );
 
                             if next_btn.clicked() {
@@ -403,7 +416,7 @@ impl eframe::App for MyMsgApp {
                                 )
                                 .fill(palette.button_bg)
                                 .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                                .rounding(4.0_f32),
+                                .corner_radius(4.0_f32),
                             );
 
                             if abort_btn.clicked() {
@@ -422,7 +435,7 @@ impl eframe::App for MyMsgApp {
                                 )
                                 .fill(palette.button_bg)
                                 .stroke(egui::Stroke::new(1.0_f32, palette.button_stroke))
-                                .rounding(4.0_f32),
+                                .corner_radius(4.0_f32),
                             );
 
                             if close_btn.clicked() {
@@ -437,13 +450,13 @@ impl eframe::App for MyMsgApp {
             });
 
         // メッセージコンテンツ領域（利用可能領域全体での上下左右完全中央配置＆縦スクロール対応）
-        let central_frame = egui::Frame::none()
+        let central_frame = egui::Frame::NONE
             .fill(palette.bg_color)
-            .inner_margin(egui::Margin::symmetric(16.0_f32, 8.0_f32));
+            .inner_margin(egui::Margin::symmetric(16, 8));
 
         egui::CentralPanel::default()
             .frame(central_frame)
-            .show(ctx, |ui| {
+            .show(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
@@ -458,7 +471,7 @@ impl eframe::App for MyMsgApp {
                         };
 
                         // テキストの描画サイズ（Galley）を正確に事前計算
-                        let galley = ui.fonts(|f| {
+                        let galley = ui.fonts_mut(|f| {
                             f.layout(
                                 self.message.clone(),
                                 self.font_id.clone(),

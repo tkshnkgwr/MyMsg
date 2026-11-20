@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-20
+
+### Fixed & Improved
+- **Dependency Upgrades & `eframe` `glow`-Only Minimization (`Cargo.toml`)**:
+  - Upgraded `eframe` to `0.37` with `default-features = false, features = ["glow", "default_fonts", "clipboard", "wayland", "x11"]`, eliminating unnecessary `wgpu` / `egui-wgpu` / `accesskit` dependencies.
+  - Upgraded `windows-sys` to `0.61`, removed unused `Win32_UI_Input_KeyboardAndMouse` feature, and explicitly declared `Win32_System_Threading`.
+  - Updated `clap` (`4.6`), `notify-rust` (`4.19`), and transitive crates to latest stable versions.
+- **Window Frame `✕` Close Button Abort & Logging Fix (`src/app.rs`)**:
+  - Handled `viewport().close_requested()` to set `should_exit_all` and emit a `WindowClose` log entry, aligning recurring `--interval` abort behavior with `SPECIFICATION.md`.
+- **Boundary & Safety Hardening**:
+  - Added `is_ascii()` guard in `parse_color` HEX parsing to prevent UTF-8 character boundary panics on multi-byte strings, and added documented typo aliases (`grean`, `yello`).
+  - Replaced raw multiplication with `checked_mul` in `parse_duration_to_seconds` to prevent integer overflow.
+  - Added `is_finite()` / positive checks and `8.0..=200.0` clamping for `--font-size` in `calculate_window_dimensions`.
+  - Hardened toast timeout conversion in `send_toast_notification` with `saturating_mul` and `u32::MAX` clamping.
+  - Bounded UTF-16 slice length in `is_interactive_session` when decoding desktop names.
+- **Implemented `--font impact` (`4`) Font Family (`src/font.rs`, `src/app.rs`)**:
+  - Registered the `impact` font family (`impact.ttf` / `meiryob.ttc` / `YuGothB.ttc` with Japanese fallback) to match CLI help and specifications.
+- **CI/CD & Documentation Synchronization**:
+  - Added `Swatinem/rust-cache@v2` to `.github/workflows/ci.yml` and `release.yml`.
+  - Synchronized `README.md`, `README_JA.md`, and `docs/ja/` & `docs/en/` (`SPECIFICATION`, `SECURITY`, `ARCHITECTURE`, `DEVELOPMENT`, `TODO`, `TESTING`, `TEST_REPORT`, `FOOTPRINTS`) with the latest code and benchmarks.
+
 ## [1.5.0] - 2026-10-27
 
 ### Changed & Improved

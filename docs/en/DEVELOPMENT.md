@@ -7,7 +7,7 @@ This document covers local development environment setup, building, running unit
 ## 1. Prerequisites & Setup
 
 ### Prerequisites
-- **Rust Toolchain**: Rust 1.80 or later (stable channel recommended)
+- **Rust Toolchain**: Rust 1.95 or later (stable channel recommended)
 - **Git**: Source version control
 
 ```bash

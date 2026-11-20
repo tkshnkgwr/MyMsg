@@ -247,7 +247,7 @@ fn main() -> eframe::Result<()> {
                     DispatchMessageW, PeekMessageW, TranslateMessage, MSG, PM_REMOVE,
                 };
                 let mut msg: MSG = std::mem::zeroed();
-                while PeekMessageW(&mut msg, 0, 0, 0, PM_REMOVE) != 0 {
+                while PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, PM_REMOVE) != 0 {
                     TranslateMessage(&msg);
                     DispatchMessageW(&msg);
                 }

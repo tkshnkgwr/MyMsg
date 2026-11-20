@@ -111,7 +111,7 @@ graph TD
 
 ---
 
-## 6. マルチモニター・画面中央配置仕様 (`get_active_monitor_center_position`)
+## 6. マルチモニター・画面中央配置仕様 (`get_monitor_center_position`)
 
 複数ディスプレイ使用時、ウィンドウの初期表示位置は以下のロジックで決定されます：
 
@@ -145,20 +145,20 @@ graph TD
 
 `--color` および `--bg-color` に指定可能なカラー表現は以下の通りです。大文字小文字は無視されます。
 
-### 7.1 プリセット色名 & 1文字略称
+### 8.1 プリセット色名 & 1文字略称
 
-| カラー名           | 1文字略称 | 和名 | タイポ補正 | RGB値 (HEX)             |
-| :----------------- | :-------: | :--: | :--------: | :---------------------- |
-| `red`              |    `r`    | `赤` |     -      | `#EF4444` (239, 68, 68) |
-| `green`            |    `g`    | `緑` |     -      | `#22C55E` (34, 197, 94) |
-| `blue`             |    `b`    | `青` |   `bule`   | `#3B82F6` (59, 130, 246)|
-| `yellow`           |    `y`    | `黄` |     -      | `#EAB308` (234, 179, 8) |
-| `orange`           |    `o`    |  -   |     -      | `#F97316` (249, 115, 22)|
-| `purple`           |    `p`    |  -   |     -      | `#A855F7` (168, 85, 247)|
-| `cyan`             |    `c`    |  -   |     -      | `#06B6D4` (6, 182, 212) |
-| `pink` / `magenta` |    `m`    |  -   |     -      | `#EC4899` (236, 72, 153)|
-| `white`            |    `w`    | `白` |     -      | `#FFFFFF` (255, 255, 255)|
-| `black`            |    `k`    | `黒` |     -      | `#0A0A0F` (10, 10, 15)  |
+| カラー名           | 1文字略称 | 和名 | タイポ補正 | RGB値 (HEX)               |
+| :----------------- | :-------: | :--: | :--------: | :------------------------ |
+| `red`              |    `r`    | `赤` |     -      | `#EF4444` (239, 68, 68)   |
+| `green`            |    `g`    | `緑` |  `grean`   | `#22C55E` (34, 197, 94)   |
+| `blue`             |    `b`    | `青` |   `bule`   | `#3B82F6` (59, 130, 246)  |
+| `yellow`           |    `y`    | `黄` |  `yello`   | `#EAB308` (234, 179, 8)   |
+| `orange`           |    `o`    |  -   |     -      | `#F97316` (249, 115, 22)  |
+| `purple`           |    `p`    |  -   |     -      | `#A855F7` (168, 85, 247)  |
+| `cyan`             |    `c`    |  -   |     -      | `#06B6D4` (6, 182, 212)   |
+| `pink` / `magenta` |    `m`    |  -   |     -      | `#EC4899` (236, 72, 153)  |
+| `white`            |    `w`    | `白` |     -      | `#FFFFFF` (255, 255, 255) |
+| `black`            |    `k`    | `黒` |     -      | `#0A0A0F` (10, 10, 15)    |
 
 ### 8.2 拡張パレット色
 `lime`, `gold`, `amber`, `emerald`, `teal`, `sky`, `indigo`, `violet`, `rose`, `crimson`, `navy`, `gray` / `grey` / `gray500`, `dark` / `darkgray`, `light` / `lightgray`
@@ -209,6 +209,7 @@ graph TD
 - `FontFamily::Proportional`: 優先度第1位に日本語フォントを挿入。
 - `FontFamily::Monospace`: フォールバックリストに追加。
 - `FontFamily::Name("serif")`: 明朝体または日本語フォントを登録。
+- `FontFamily::Name("impact")`: 強調フォント（`impact.ttf` / `meiryob.ttc` / `YuGothB.ttc`）または日本語フォントを登録。
 
 ---
 
@@ -274,7 +275,7 @@ graph TD
   - `[CLOSE] reason=Timeout elapsed=5.01s`
   - `[COPY] Message copied to clipboard`
   - `[ACTION] cmd="..." status=success`
-  - `[SESSION0] Fallback to Toast`
+  - `[ACTION] cmd="Session0Detection: Fallback to Toast" status=success`
 
 ### 16.5 システム通知音再生 (`--sound` / `--beep`)
 - ウィンドウ表示時、およびトースト通知発行時に OS のシステムチャイム音（Windows では `MessageBeep`、Linux/macOS では端末ベル）を再生。

@@ -6,13 +6,13 @@ This document contains the execution report and verification evidence for the `M
 
 ## 1. Test Environment
 
-| Parameter            | Value                                |
-| :------------------- | :----------------------------------- |
-| **OS**               | Windows 11 (x86_64)                  |
-| **Rust Version**     | 1.80+ / stable-x86_64-pc-windows-msvc|
-| **Cargo Version**    | cargo 1.80+                          |
-| **Target Version**   | v1.4.0                               |
-| **Execution Date**   | 2026-10-02                           |
+| Parameter            | Value                                   |
+| :------------------- | :-------------------------------------- |
+| **OS**               | Windows 11 (x86_64)                     |
+| **Rust Version**     | 1.100.0 / stable-x86_64-pc-windows-msvc |
+| **Cargo Version**    | cargo 1.100.0                           |
+| **Target Version**   | v1.6.0                                  |
+| **Execution Date**   | 2026-11-20                              |
 
 ---
 

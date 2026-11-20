@@ -91,9 +91,9 @@ pub fn parse_color(input: &str) -> Option<Color32> {
     match clean.as_str() {
         // 基本色 ＆ 1文字略称
         "red" | "r" | "赤" => Some(Color32::from_rgb(239, 68, 68)),
-        "green" | "g" | "緑" => Some(Color32::from_rgb(34, 197, 94)),
+        "green" | "grean" | "g" | "緑" => Some(Color32::from_rgb(34, 197, 94)),
         "blue" | "bule" | "b" | "青" => Some(Color32::from_rgb(59, 130, 246)),
-        "yellow" | "y" | "黄" => Some(Color32::from_rgb(234, 179, 8)),
+        "yellow" | "yello" | "y" | "黄" => Some(Color32::from_rgb(234, 179, 8)),
         "orange" | "o" => Some(Color32::from_rgb(249, 115, 22)),
         "purple" | "p" => Some(Color32::from_rgb(168, 85, 247)),
         "cyan" | "c" => Some(Color32::from_rgb(6, 182, 212)),
@@ -117,8 +117,11 @@ pub fn parse_color(input: &str) -> Option<Color32> {
         "dark" | "darkgray" => Some(Color32::from_rgb(30, 41, 59)),
         "light" | "lightgray" => Some(Color32::from_rgb(226, 232, 240)),
         _ => {
-            // #RRGGBB または #RGB または RRGGBB をパース
+            // #RRGGBB または #RGB または RRGGBB をパース（非ASCII文字でのバイト境界パニックを防止）
             let hex = clean.strip_prefix('#').unwrap_or(&clean);
+            if !hex.is_ascii() {
+                return None;
+            }
             if hex.len() == 6 {
                 let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
                 let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
@@ -153,9 +156,11 @@ mod tests {
         assert_eq!(parse_color("RED"), Some(Color32::from_rgb(239, 68, 68)));
         assert_eq!(parse_color("green"), Some(Color32::from_rgb(34, 197, 94)));
 
-        // typo補正 (bule -> blue)
+        // typo補正 (bule -> blue, grean -> green, yello -> yellow)
         assert_eq!(parse_color("bule"), Some(Color32::from_rgb(59, 130, 246)));
         assert_eq!(parse_color("Bule"), Some(Color32::from_rgb(59, 130, 246)));
+        assert_eq!(parse_color("grean"), Some(Color32::from_rgb(34, 197, 94)));
+        assert_eq!(parse_color("yello"), Some(Color32::from_rgb(234, 179, 8)));
 
         // 1文字略称
         assert_eq!(parse_color("r"), Some(Color32::from_rgb(239, 68, 68)));
@@ -185,8 +190,11 @@ mod tests {
             Some(Color32::from_rgba_unmultiplied(255, 255, 255, 128))
         );
 
-        // 不正値
+        // 不正値およびマルチバイト文字（UTF-8で6バイト相当でもパニックしないこと）
         assert_eq!(parse_color("invalid_color_xyz"), None);
+        assert_eq!(parse_color("あい"), None);
+        assert_eq!(parse_color("#あい"), None);
+        assert_eq!(parse_color("あ"), None);
     }
 
     #[test]

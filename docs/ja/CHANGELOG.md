@@ -6,6 +6,27 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-20
+
+### 修正・改善 (Fixed & Improved)
+- **依存関係の最新化と `eframe` の `glow` 単一化 (`Cargo.toml`)**:
+  - `eframe` を `0.37` へ最新化し、`default-features = false, features = ["glow", "default_fonts", "clipboard", "wayland", "x11"]` の最小構成へ切り替え（`wgpu` / `egui-wgpu` / `accesskit` 等の不要依存を排除）。
+  - `windows-sys` を `0.61` へ最新化し、未使用フィーチャー（`Win32_UI_Input_KeyboardAndMouse`）を削除、`Win32_System_Threading` を明示。
+  - `clap` (`4.6`), `notify-rust` (`4.19`) 等の依存クレートを最新安定版へ更新。
+- **ウィンドウ「✕」ボタン押下時の定期実行中止・ログ記録の修正 (`src/app.rs`)**:
+  - OSウィンドウの「✕」ボタン押下（`close_requested`）時に `should_exit_all` をセットし `WindowClose` ログを記録するよう修正（`SPECIFICATION.md` 仕様との矛盾を解消）。
+- **境界値・安全性ガードの強化**:
+  - `parse_color` の HEX 解析に `is_ascii()` チェックを追加し、マルチバイト6バイト文字列等による UTF-8 文字境界パニックを防止。ヘルプ記載のタイポ補正（`grean`, `yello`）を追加。
+  - `parse_duration_to_seconds` の単位乗算に `checked_mul` を適用し、整数オーバーフローを防止。
+  - `calculate_window_dimensions` で `--font-size` の `NaN` / `Infinity` / 0以下をフォールバックし、8.0〜200.0pt の安全範囲にクランプ。
+  - `send_toast_notification` のタイムアウト乗算に `saturating_mul` + `u32::MAX` クランプを適用。
+  - `is_interactive_session` のデスクトップ名バッファ長に上限クランプを追加。
+- **`--font impact` (`4`) フォントファミリの実装 (`src/font.rs`, `src/app.rs`)**:
+  - CLIヘルプ・仕様書に記載されていた `impact` フォント指定（`impact.ttf` / `meiryob.ttc` / `YuGothB.ttc` ＋ 日本語フォールバック）を実装。
+- **CI/CD・ドキュメント同期**:
+  - `.github/workflows/ci.yml` / `release.yml` に `Swatinem/rust-cache@v2` を追加。
+  - `README.md` / `README_JA.md` および `docs/ja/`・`docs/en/`（`SPECIFICATION`, `SECURITY`, `ARCHITECTURE`, `DEVELOPMENT`, `TODO`, `TESTING`, `TEST_REPORT`, `FOOTPRINTS`）を最新実装・実測値に全面同期。
+
 ## [1.5.0] - 2026-10-27
 
 ### 変更・改善 (Changed & Improved)

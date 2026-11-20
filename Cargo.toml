@@ -1,23 +1,29 @@
 [package]
 name = "MyMsg"
-version = "1.5.0"
+version = "1.6.0"
 license = "GPL-3.0-or-later"
 edition = "2021"
 
 [dependencies]
 chrono = "0.4"
-clap = { version = "4.5", features = ["derive"] }
-eframe = "0.29"
+clap = { version = "4.6", features = ["derive"] }
+eframe = { version = "0.37", default-features = false, features = [
+    "glow",
+    "default_fonts",
+    "clipboard",
+    "wayland",
+    "x11",
+] }
 notify-rust = "4"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.52", features = [
+windows-sys = { version = "0.61", features = [
     "Win32_UI_WindowsAndMessaging",
     "Win32_Graphics_Gdi",
     "Win32_Foundation",
     "Win32_System_Diagnostics_Debug",
     "Win32_System_StationsAndDesktops",
     "Win32_System_Console",
-    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_System_Threading",
 ] }
 
